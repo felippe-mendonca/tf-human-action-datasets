@@ -1,0 +1,28 @@
+
+JOINTS_MAP = {
+    'baseSpine': 0,
+    'middleSpine': 1,
+    'neck': 2,
+    'head': 3,
+    'lShoulder': 4,
+    'lElbow': 5,
+    'lWirst': 6,
+    'lHand': 7,
+    'rShoulder': 8,
+    'rElbow': 9,
+    'rWirst': 10,
+    'rHand': 11,
+    'lHip': 12,
+    'lKnee': 13,
+    'lAnkle': 14,
+    'lFoot': 15,
+    'rHip': 16,
+    'rKnee': 17,
+    'rAnkle': 18,
+    'rFoot': 19,
+    'spine': 20,
+    'lTipHand': 21,
+    'lThumb': 22,
+    'rTipHand': 23,
+    'rThumb': 24
+}

@@ -1,0 +1,4 @@
+*.pyc
+*.tfrecords
+venv/
+.vscode
