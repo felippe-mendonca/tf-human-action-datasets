@@ -14,8 +14,8 @@ dataset_folder = '/home/felippe/datasets/NTURGB-D/nturgb+d_skeletons/'
 loader = Loader(folder=dataset_folder, load_headings=False)
 
 def make_tfrecords(dataset_part):
-    train_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
-    writer = tf.python_io.TFRecordWriter(train_filename)
+    tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
+    writer = tf.python_io.TFRecordWriter(tfrecord_filename)
 
     files = loader.list_files(only_valids=True, dataset_part=dataset_part)
 
@@ -37,7 +37,7 @@ def make_tfrecords(dataset_part):
         writer.write(example.SerializeToString())
 
         if n % 100 == 0:
-            log.info('[{}] {}/{}'.format(train_filename, n, len(files)))
+            log.info('[{}] {}/{}'.format(tfrecord_filename, n, len(files)))
 
     writer.close()
     sys.stdout.flush()
