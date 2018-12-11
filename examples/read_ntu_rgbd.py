@@ -1,7 +1,7 @@
 import sys
 
 import tensorflow as tf
-from skeletons_datasets.ntu_rgbd.reader import DatasetReader
+from skeletons_datasets.common.reader import DatasetReader
 
 tf.enable_eager_execution()
 
