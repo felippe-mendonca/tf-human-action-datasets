@@ -1,5 +1,7 @@
 import sys
 import logging
+import argparse
+from os.path import join
 import numpy as np
 import tensorflow as tf
 
@@ -10,37 +12,56 @@ FORMAT = '[%(asctime)-15s] %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
 log = logging.getLogger('ntu_rgbd_create_tfrecords')
 
-dataset_folder = '/home/felippe/datasets/NTURGB-D/nturgb+d_skeletons/'
-loader = Loader(folder=dataset_folder, load_headings=False)
 
-def make_tfrecords(dataset_part):
-    tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
-    writer = tf.python_io.TFRecordWriter(tfrecord_filename)
+def main(dataset_folder, output_folder):
+    loader = Loader(folder=dataset_folder, load_headings=False)
 
-    files = loader.list_files(only_valids=True, dataset_part=dataset_part)
+    def make_tfrecords(dataset_part):
+        tfrecord_filename = join(output_folder, 'ntu_rgbd.{}.tfrecords'.format(dataset_part))
+        writer = tf.python_io.TFRecordWriter(tfrecord_filename)
 
-    for n, file in enumerate(files):
-        metadata, data = loader.load_from_file(file)
-        positions_list = list(data.values())[0]['positions']
+        files = loader.list_files(only_valids=True, dataset_part=dataset_part)
 
-        positions = np.dstack(positions_list)
-        shape = np.array(positions.shape, dtype=np.int32)
-        label = metadata['action']
+        for n, file in enumerate(files):
+            metadata, data = loader.load_from_file(file)
+            positions_list = list(data.values())[0]['positions']
 
-        feature = {
-            'label': int64_feature(label),
-            'positions': bytes_feature(positions.tobytes()),
-            'shape': bytes_feature(shape.tobytes())
-        }
+            positions = np.dstack(positions_list)
+            shape = np.array(positions.shape, dtype=np.int32)
+            label = metadata['action']
 
-        example = tf.train.Example(features=tf.train.Features(feature=feature))
-        writer.write(example.SerializeToString())
+            feature = {
+                'label': int64_feature(label),
+                'positions': bytes_feature(positions.tobytes()),
+                'shape': bytes_feature(shape.tobytes())
+            }
 
-        if n % 100 == 0:
-            log.info('[{}] {}/{}'.format(tfrecord_filename, n, len(files)))
+            example = tf.train.Example(features=tf.train.Features(feature=feature))
+            writer.write(example.SerializeToString())
 
-    writer.close()
-    sys.stdout.flush()
+            if n % 100 == 0:
+                log.info('[{}] {}/{}'.format(tfrecord_filename, n, len(files)))
 
-make_tfrecords('train')
-make_tfrecords('test')
+        writer.close()
+        sys.stdout.flush()
+
+    make_tfrecords('train')
+    make_tfrecords('test')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--dataset',
+        required=True,
+        type=str,
+        help='Directory containing NTU-RGBD dataset *.skeleton files.')
+    parser.add_argument(
+        '--output',
+        required=False,
+        type=str,
+        default='.',
+        help='Directory to save .tfrecord files.')
+
+    args = parser.parse_args()
+    main(dataset_folder=args.dataset, output_folder=args.output)
