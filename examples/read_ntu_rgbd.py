@@ -1,9 +1,7 @@
-import sys
-
 import tensorflow as tf
-from skeletons_datasets.common.reader import DatasetReader
-
 tf.enable_eager_execution()
+
+from skeletons_datasets.common.reader import DatasetReader
 
 dataset_part = 'train'
 tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
