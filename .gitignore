@@ -2,3 +2,4 @@
 *.tfrecords
 venv/
 .vscode
+logs/
