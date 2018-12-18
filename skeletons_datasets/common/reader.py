@@ -27,6 +27,10 @@ class DatasetReader:
 
         return label, positions
 
+    def filter(self, function):
+        self._dataset = self._dataset.filter(function)
+        return self
+
     def map(self, function):
         self._dataset = self._dataset.map(function)
         return self

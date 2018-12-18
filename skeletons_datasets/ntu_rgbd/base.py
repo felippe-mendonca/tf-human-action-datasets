@@ -1,6 +1,7 @@
 from os import walk
 from os.path import join, realpath, dirname
 import re
+import json
 import numpy as np
 from collections import defaultdict
 
@@ -8,6 +9,9 @@ from collections import defaultdict
 ONE_PERSON_ACTION = range(1, 50)
 TRAINING_IDS = [1, 2, 4, 5, 8, 9, 13, 14, 15, 16, 17, 18, 19, 25, 27, 28, 31, 34, 35, 38]
 
+actions_filename = join(dirname(realpath(__file__)),'action_names.json')
+with open(actions_filename, 'r') as f:
+    ACTION_NAMES = json.load(f)
 
 class Loader:
     def __init__(self, folder, load_positions=True, load_headings=False):
