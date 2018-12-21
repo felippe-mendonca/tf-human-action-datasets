@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 from skeletons_datasets.common.reader import DatasetReader
 from skeletons_datasets.ntu_rgbd.base import ACTION_NAMES, ONE_PERSON_ACTION
-from models.skeleton_net.encoding import PIPELINE
+from models.skeleton_net.encoding import DataEncoder
 
 FORMAT = '[%(asctime)-15s] %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
@@ -34,8 +34,9 @@ def main(class_id, dataset_part):
 
     tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
     dataset = DatasetReader(tfrecord_filename)
+    encoder = DataEncoder(output_shape=[112, 112])
     dataset.filter(lambda label, _: tf.equal(label, class_id))
-    [dataset.map(function) for function in PIPELINE]
+    encoder.apply_to_dataset(dataset)
     dataset_it = dataset.get_iterator()
 
     fig = plt.figure()
