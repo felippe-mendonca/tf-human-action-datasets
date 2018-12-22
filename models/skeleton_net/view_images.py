@@ -34,7 +34,11 @@ def main(class_id, dataset_part):
 
     tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
     dataset = DatasetReader(tfrecord_filename)
-    encoder = DataEncoder(output_shape=[112, 112])
+    encoder = DataEncoder(
+        output_shape=[112, 112],
+        one_hot=True,
+        n_classes=len(ONE_PERSON_ACTION),
+        label_offset_to_zero=1)
     dataset.filter(lambda label, _: tf.equal(label, class_id))
     encoder.apply_to_dataset(dataset)
     dataset_it = dataset.get_iterator()

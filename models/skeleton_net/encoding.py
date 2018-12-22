@@ -1,12 +1,13 @@
 import tensorflow as tf
-tf.enable_eager_execution()
-
 from skeletons_datasets.common.joints import JOINTS_MAP
 
 
 class DataEncoder:
-    def __init__(self, output_shape=[244, 244]):
+    def __init__(self, output_shape, n_classes, one_hot=True, label_offset_to_zero=0):
         self._output_shape = output_shape
+        self._one_hot = one_hot
+        self._n_classes = n_classes
+        self._label_offset_to_zero = label_offset_to_zero
 
         # Body part reference is the first joint of the list
         self._body_parts = {
@@ -24,6 +25,9 @@ class DataEncoder:
             self._make_features, self._scale_features_values, self._stack_features,
             self._scale_features_size
         ]
+
+        if self._one_hot:
+            self._pipeline.append(self._make_one_hot_encoding)
 
     def apply_to_dataset(self, dataset):
         for function in self._pipeline:
@@ -118,3 +122,6 @@ class DataEncoder:
             features[part_name] = tf.squeeze(features[part_name])
 
         return label, features
+
+    def _make_one_hot_encoding(self, label, features):
+        return tf.one_hot(label - self._label_offset_to_zero, self._n_classes), features

@@ -18,6 +18,7 @@ import warnings
 
 """
 from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Flatten
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.layers import Input
@@ -35,6 +36,24 @@ from keras_applications.imagenet_utils import _obtain_input_shape
 
 WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5'
 WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
+
+
+def vgg16(name=None, slice_at=None, single_block=True, *args, **kwargs):
+    model = VGG16(*args, **kwargs)
+    prefix_name = kwargs['prefix_name']
+    if slice_at is not None:
+        sliced_layer = model.get_layer(prefix_name + slice_at).output
+    else:
+        sliced_layer = model.output
+
+    sliced_model = Model(inputs=model.input, outputs=sliced_layer, name=prefix_name + 'vgg16')
+    if single_block:
+        output_model = Sequential()
+        output_model.add(sliced_model)
+    else:
+        output_model = sliced_model
+
+    return output_model
 
 
 def VGG16(include_top=True,
@@ -165,10 +184,10 @@ def VGG16(include_top=True,
 
     if include_top:
         # Classification block
-        x = Flatten(name= prefix_name + 'flatten')(x)
-        x = Dense(4096, activation='relu', name= prefix_name + 'fc1')(x)
-        x = Dense(4096, activation='relu', name= prefix_name + 'fc2')(x)
-        x = Dense(classes, activation='softmax', name= prefix_name + 'predictions')(x)
+        x = Flatten(name=prefix_name + 'flatten')(x)
+        x = Dense(4096, activation='relu', name=prefix_name + 'fc1')(x)
+        x = Dense(4096, activation='relu', name=prefix_name + 'fc2')(x)
+        x = Dense(classes, activation='softmax', name=prefix_name + 'predictions')(x)
     else:
         if pooling == 'avg':
             x = GlobalAveragePooling2D()(x)
@@ -182,7 +201,7 @@ def VGG16(include_top=True,
     else:
         inputs = img_input
     # Create model.
-    model = Model(inputs, x, name= prefix_name + 'vgg16')
+    model = Model(inputs, x, name=prefix_name + 'vgg16')
 
     # load weights
     if weights == 'imagenet':
@@ -204,9 +223,9 @@ def VGG16(include_top=True,
 
         if K.image_data_format() == 'channels_first':
             if include_top:
-                maxpool = model.get_layer(name= prefix_name + 'block5_pool')
+                maxpool = model.get_layer(name=prefix_name + 'block5_pool')
                 shape = maxpool.output_shape[1:]
-                dense = model.get_layer(name= prefix_name + 'fc1')
+                dense = model.get_layer(name=prefix_name + 'fc1')
                 layer_utils.convert_dense_weights_data_format(dense, shape, 'channels_first')
 
             if K.backend() == 'tensorflow':

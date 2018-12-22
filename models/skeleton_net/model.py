@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras import Input
-from tensorflow.python.keras.models import Model, Sequential
+from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Dot
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.layers import Flatten
@@ -11,27 +11,7 @@ from tensorflow.python.keras.layers import Concatenate
 from tensorflow.python.keras.layers import AveragePooling2D
 from tensorflow.python.keras.layers.core import Lambda
 
-from ..base.vgg16 import VGG16
-
-from tensorflow.python.keras.utils.vis_utils import plot_model
-
-
-def vgg16(name=None, slice_at=None, single_block=True, *args, **kwargs):
-    model = VGG16(*args, **kwargs)
-    prefix_name = kwargs['prefix_name']
-    if slice_at is not None:
-        sliced_layer = model.get_layer(prefix_name + slice_at).output
-    else:
-        sliced_layer = model.output
-
-    sliced_model = Model(inputs=model.input, outputs=sliced_layer, name=prefix_name + 'vgg16')
-    if single_block:
-        output_model = Sequential()
-        output_model.add(sliced_model)
-    else:
-        output_model = sliced_model
-
-    return output_model
+from ..base.vgg16 import vgg16
 
 
 def make_model(input_shape, n_parallel_paths, n_classes):
