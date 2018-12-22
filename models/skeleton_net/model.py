@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras import Input
-from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Dot
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.layers import Flatten
@@ -16,24 +16,42 @@ from ..base.vgg16 import VGG16
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
 
+def vgg16(name=None, slice_at=None, single_block=True, *args, **kwargs):
+    model = VGG16(*args, **kwargs)
+    prefix_name = kwargs['prefix_name']
+    if slice_at is not None:
+        sliced_layer = model.get_layer(prefix_name + slice_at).output
+    else:
+        sliced_layer = model.output
+
+    sliced_model = Model(inputs=model.input, outputs=sliced_layer, name=prefix_name + 'vgg16')
+    if single_block:
+        output_model = Sequential()
+        output_model.add(sliced_model)
+    else:
+        output_model = sliced_model
+
+    return output_model
+
+
 def make_model(input_shape, n_parallel_paths, n_classes):
 
     N_PARALLEL_PATHS = n_parallel_paths
     N_CLASSES = n_classes
 
-    def make_parallel_path(input_tensor, prefix_name=''):
+    def make_parallel_path(prefix_name=''):
         # use None instead of 'imagenet' to random initialization
-        vgg16_model = VGG16(
+        vgg16_sliced = vgg16(
             weights='imagenet',
             include_top=False,
             input_shape=input_shape,
-            input_tensor=input_tensor,
-            prefix_name=prefix_name)
+            prefix_name=prefix_name,
+            single_block=True,
+            slice_at='block3_pool')
 
-        block3_pool = vgg16_model.get_layer(prefix_name + 'block3_pool').output
-
-        pool_size = block3_pool.shape[1:3]
-        x = AveragePooling2D(pool_size=pool_size, name=prefix_name + 'avg_pool')(block3_pool)
+        pool_size = vgg16_sliced.output.shape[1:3]
+        x = AveragePooling2D(
+            pool_size=pool_size, name=prefix_name + 'avg_pool')(vgg16_sliced.output)
         x = Flatten(name=prefix_name + 'flatten1')(x)
         x = Dense(
             20,
@@ -47,15 +65,12 @@ def make_model(input_shape, n_parallel_paths, n_classes):
             kernel_initializer='random_uniform',
             name=prefix_name + 'attention_fc2')(x)
 
-        return Model(inputs=vgg16_model.input, outputs=x)
-
-    inputs = Input(shape=input_shape + (N_PARALLEL_PATHS, ), name='input')
-    inputs = Lambda(lambda t: tf.unstack(t, axis=-1), name='input/unstack1')(inputs)
+        return Model(inputs=vgg16_sliced.input, outputs=x)
 
     parallel_path = []
     parallel_path_outputs = []
     for i in range(N_PARALLEL_PATHS):
-        parallel_path.append(make_parallel_path(inputs[i], prefix_name='path{}/'.format(i)))
+        parallel_path.append(make_parallel_path(prefix_name='path{}/'.format(i)))
         parallel_path_outputs.append(parallel_path[i].output)
 
     x_attention = Concatenate(axis=1, name='attention/concat1')(parallel_path_outputs)
@@ -75,4 +90,5 @@ def make_model(input_shape, n_parallel_paths, n_classes):
     x = Dense(N_CLASSES, use_bias=True, kernel_initializer='random_uniform', name='output/fc1')(x)
     x = Activation('softmax', name='output/softmax1')(x)
 
-    return Model(inputs=parallel_path[0].input, outputs=x)
+    inputs = [p.input for p in parallel_path]
+    return Model(inputs=inputs, outputs=x)
