@@ -28,6 +28,9 @@ class DataEncoder:
 
         if self._one_hot:
             self._pipeline.append(self._make_one_hot_encoding)
+    
+    def get_body_parts(self):
+        return self._body_parts
 
     def apply_to_dataset(self, dataset):
         for function in self._pipeline:
@@ -120,6 +123,7 @@ class DataEncoder:
             features[part_name] = tf.image.resize_bilinear(
                 features[part_name], size=self._output_shape)
             features[part_name] = tf.squeeze(features[part_name])
+            features[part_name].set_shape(self._output_shape + [3])
 
         return label, features
 

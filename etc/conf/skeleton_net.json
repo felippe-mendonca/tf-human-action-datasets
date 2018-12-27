@@ -1,0 +1,27 @@
+{
+  "optimizer": {
+    "learning_rate": 0.01,
+    "learning_decay": 0.001
+  },
+  "estimator": {
+    "save_summary_steps": 100,
+    "save_checkpoints_secs": 600,
+    "keep_checkpoint_max": 5,
+    "log_step_count_steps": 100
+  },
+  "training": {
+    "batch_size": 64,
+    "num_epochs": 100,
+    "perform_shuffle": true,
+    "max_steps": 0
+  },
+  "storage": {
+    "dataset": "./",
+    "logs": "./"
+  },
+  "dataset": "NTU_RGBD",
+  "input_shape": {
+    "width": 112,
+    "height": 112
+  }
+}

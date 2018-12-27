@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+message Optimizer {
+  float learning_rate = 1;
+  float learning_decay = 2;
+}
+
+message EstimatorConfig {
+  int32 save_summary_steps = 1;
+  int32 save_checkpoints_secs = 2;
+  int32 keep_checkpoint_max = 3;
+  int32 log_step_count_steps = 4;
+}
+
+message Storage {
+  string dataset = 1;
+  string logs = 2;
+}
+
+message Training {
+  int32 batch_size = 1;
+  int32 num_epochs = 2;
+  bool perform_shuffle = 3;
+  int32 max_steps = 4;
+}
+
+enum Datasets {
+  NTU_RGBD = 0;
+}
+
+message Shape {
+  int32 width = 1;
+  int32 height = 2;
+}
+
+message SkeletonNetOptions {
+  Optimizer optimizer = 1;
+  EstimatorConfig estimator = 2;
+  Training training = 3;
+  Storage storage = 4;
+  Datasets dataset = 5;
+  Shape input_shape = 6;
+}
