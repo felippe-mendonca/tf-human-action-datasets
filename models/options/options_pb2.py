@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\roptions.proto\":\n\tOptimizer\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x02 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"(\n\x07Storage\x12\x0f\n\x07\x64\x61taset\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"^\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x17\n\x0fperform_shuffle\x18\x03 \x01(\x08\x12\x11\n\tmax_steps\x18\x04 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape*\x18\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x62\x06proto3')
+  serialized_pb=_b('\n\roptions.proto\":\n\tOptimizer\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x02 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"(\n\x07Storage\x12\x0f\n\x07\x64\x61taset\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape*\x18\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x62\x06proto3')
 )
 
 _DATASETS = _descriptor.EnumDescriptor(
@@ -36,8 +36,8 @@ _DATASETS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=597,
-  serialized_end=621,
+  serialized_start=617,
+  serialized_end=641,
 )
 _sym_db.RegisterEnumDescriptor(_DATASETS)
 
@@ -196,15 +196,22 @@ _TRAINING = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='perform_shuffle', full_name='Training.perform_shuffle', index=2,
-      number=3, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
+      name='shuffle_size', full_name='Training.shuffle_size', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='max_steps', full_name='Training.max_steps', index=3,
+      name='prefetch_size', full_name='Training.prefetch_size', index=3,
       number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='max_steps', full_name='Training.max_steps', index=4,
+      number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -222,7 +229,7 @@ _TRAINING = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=257,
-  serialized_end=351,
+  serialized_end=371,
 )
 
 
@@ -259,8 +266,8 @@ _SHAPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=353,
-  serialized_end=391,
+  serialized_start=373,
+  serialized_end=411,
 )
 
 
@@ -325,8 +332,8 @@ _SKELETONNETOPTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=394,
-  serialized_end=595,
+  serialized_start=414,
+  serialized_end=615,
 )
 
 _SKELETONNETOPTIONS.fields_by_name['optimizer'].message_type = _OPTIMIZER

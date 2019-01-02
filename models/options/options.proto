@@ -20,8 +20,9 @@ message Storage {
 message Training {
   int32 batch_size = 1;
   int32 num_epochs = 2;
-  bool perform_shuffle = 3;
-  int32 max_steps = 4;
+  int32 shuffle_size = 3;
+  int32 prefetch_size = 4;
+  int32 max_steps = 5;
 }
 
 enum Datasets {

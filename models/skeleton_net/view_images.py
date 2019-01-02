@@ -33,7 +33,7 @@ def main(class_id, dataset_part):
         sys.exit(-1)
 
     tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
-    dataset = DatasetReader(tfrecord_filename)
+    dataset = DatasetReader(filenames=tfrecord_filename)
     encoder = DataEncoder(
         output_shape=[112, 112],
         one_hot=True,

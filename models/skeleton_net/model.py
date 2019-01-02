@@ -35,7 +35,7 @@ def make_model(input_shape, n_parallel_paths, n_classes):
         x = Flatten(name=prefix_name + 'flatten1')(x)
         x = Dense(
             20,
-            use_bias=False,
+            use_bias=True,
             kernel_initializer='random_uniform',
             name=prefix_name + 'attention_fc1')(x)
         x = Activation('relu', name=prefix_name + 'attention_relu1')(x)

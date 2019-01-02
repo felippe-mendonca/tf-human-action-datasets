@@ -10,9 +10,10 @@
     "log_step_count_steps": 100
   },
   "training": {
-    "batch_size": 64,
+    "batch_size": 32,
     "num_epochs": 100,
-    "perform_shuffle": true,
+    "shuffle_size": 320,
+    "prefetch_size": 4,
     "max_steps": 0
   },
   "storage": {

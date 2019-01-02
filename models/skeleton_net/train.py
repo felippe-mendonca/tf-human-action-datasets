@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 import tensorflow as tf
 from tensorflow.python.keras.optimizers import Adam
@@ -11,6 +12,7 @@ from models.skeleton_net.model import make_model
 from models.options.options_pb2 import SkeletonNetOptions, Datasets
 from models.options.utils import load_options
 
+tf.logging.set_verbosity(logging.INFO)
 
 def main(options_filename):
     op = load_options(options_filename, SkeletonNetOptions)
@@ -19,18 +21,18 @@ def main(options_filename):
     # add shuffle option
     train_dataset = DatasetReader(
         filenames=tfrecord_basename.format('train'),
-        buffer_size=500*1024*1024,
         batch_size=op.training.batch_size,
         drop_reminder=True,
         num_epochs=op.training.num_epochs,
-        perform_shuffle=op.training.perform_shuffle)
+        shuffle_size=op.training.shuffle_size,
+        prefetch_size=op.training.prefetch_size)
     test_dataset = DatasetReader(
         filenames=tfrecord_basename.format('test'),
-        buffer_size=500*1024*1024,
         batch_size=1,
         drop_reminder=True,
         num_epochs=1,
-        perform_shuffle=False)
+        shuffle_size=None,
+        prefetch_size=None)
 
     encoder = DataEncoder(
         output_shape=[op.input_shape.width, op.input_shape.height],
@@ -64,9 +66,11 @@ def main(options_filename):
 
     def make_input_fn(dataset, body_parts):
         def make_inputs(batch_labels, batch_features):
-            keys = ['path{}/vgg16_input'.format(fid) for fid, _ in enumerate(body_parts)]
-            features = [batch_features[part] for part in body_parts]
-            return dict(zip(keys, features)), batch_labels
+            features_dict = {
+                'path{}/vgg16_input'.format(fid): batch_features[part]
+                for fid, part in enumerate(body_parts)
+            }
+            return features_dict, batch_labels
 
         dataset.map(make_inputs)
         batch_features, batch_labels = dataset.get_inputs()
