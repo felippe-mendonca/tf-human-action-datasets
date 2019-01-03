@@ -1,5 +1,4 @@
 import argparse
-import logging
 
 import tensorflow as tf
 from tensorflow.python.keras.optimizers import Adam
@@ -12,25 +11,23 @@ from models.skeleton_net.model import make_model
 from models.options.options_pb2 import SkeletonNetOptions, Datasets
 from models.options.utils import load_options
 
-tf.logging.set_verbosity(logging.INFO)
+tf.logging.set_verbosity(tf.logging.INFO)
+
 
 def main(options_filename):
     op = load_options(options_filename, SkeletonNetOptions)
     tfrecord_basename = '{}.{{}}.tfrecords'.format(Datasets.Name(op.dataset).lower())
 
-    # add shuffle option
     train_dataset = DatasetReader(
         filenames=tfrecord_basename.format('train'),
         batch_size=op.training.batch_size,
         drop_reminder=True,
-        num_epochs=op.training.num_epochs,
         shuffle_size=op.training.shuffle_size,
         prefetch_size=op.training.prefetch_size)
     test_dataset = DatasetReader(
         filenames=tfrecord_basename.format('test'),
         batch_size=1,
         drop_reminder=True,
-        num_epochs=1,
         shuffle_size=None,
         prefetch_size=None)
 
@@ -42,6 +39,18 @@ def main(options_filename):
 
     encoder.apply_to_dataset(train_dataset)
     encoder.apply_to_dataset(test_dataset)
+
+    body_parts = sorted(encoder.get_body_parts().keys())
+
+    def make_inputs(batch_labels, batch_features):
+        features_dict = {
+            'path{}/vgg16_input'.format(fid): batch_features[part]
+            for fid, part in enumerate(body_parts)
+        }
+        return features_dict, batch_labels
+
+    train_dataset.map(make_inputs)
+    test_dataset.map(make_inputs)
 
     n_classes = len(ONE_PERSON_ACTION)
     model = make_model(
@@ -59,29 +68,19 @@ def main(options_filename):
         keep_checkpoint_max=op.estimator.keep_checkpoint_max,
         log_step_count_steps=op.estimator.log_step_count_steps)
 
-    # verify if 'model_dir' parameter must be a full path directory
     estimator = model_to_estimator(keras_model=model, model_dir=op.storage.logs, config=config)
 
-    body_parts = sorted(encoder.get_body_parts().keys())
-
-    def make_input_fn(dataset, body_parts):
-        def make_inputs(batch_labels, batch_features):
-            features_dict = {
-                'path{}/vgg16_input'.format(fid): batch_features[part]
-                for fid, part in enumerate(body_parts)
-            }
-            return features_dict, batch_labels
-
-        dataset.map(make_inputs)
-        batch_features, batch_labels = dataset.get_inputs()
-        return batch_features, batch_labels
-
     train_spec = tf.estimator.TrainSpec(
-        input_fn=lambda: make_input_fn(train_dataset, body_parts),
+        input_fn=lambda: train_dataset.get_inputs(),
         max_steps=op.training.max_steps if op.training.max_steps > 0 else None)
-    eval_spec = tf.estimator.EvalSpec(input_fn=lambda: make_input_fn(test_dataset, body_parts))
+    eval_spec = tf.estimator.EvalSpec(input_fn=lambda: test_dataset.get_inputs())
 
-    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+    epoch = 1
+    while epoch <= op.training.num_epochs or op.training.num_epochs < 0:
+        stats = tf.estimator.train_and_evaluate(
+            estimator=estimator, train_spec=train_spec, eval_spec=eval_spec)
+        print('Epoch: {}/{}'.format(epoch, op.training.num_epochs), stats)
+        epoch += 1
 
 
 if __name__ == '__main__':
