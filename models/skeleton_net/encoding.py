@@ -28,15 +28,16 @@ class DataEncoder:
 
         if self._one_hot:
             self._pipeline.append(self._make_one_hot_encoding)
-    
+
     def get_body_parts(self):
         return self._body_parts
 
     def apply_to_dataset(self, dataset):
         for function in self._pipeline:
-            dataset.map(function)
+            dataset = dataset.map(function)
+        return dataset
 
-    def _make_features(self, label, positions):
+    def _make_features(self, positions, label):
         features = {}
         for part_name, part_joints in self._body_parts.items():
             n_k = len(part_joints) - 1  # number of part body joints
@@ -88,7 +89,7 @@ class DataEncoder:
                 'triangular_inequality': tf.concat(triangular_inequality, axis=0)
             }
 
-        return label, features
+        return features, label
 
     def _scale_tensor(self, tensor, output_range, dtype=None):
         tensor_min, tensor_max = tf.reduce_min(tensor), tf.reduce_max(tensor)
@@ -99,14 +100,14 @@ class DataEncoder:
             tensor = tf.cast(tensor, dtype=dtype)
         return tensor
 
-    def _scale_features_values(self, label, features):
+    def _scale_features_values(self, features, label):
         for part_name in features.keys():
             features[part_name]['cossine'] = (features[part_name]['cossine'] + 1.0) / 2.0
             features[part_name]['sine'] = (features[part_name]['sine'] + 1.0) / 2.0
 
-        return label, features
+        return features, label
 
-    def _stack_features(self, label, features):
+    def _stack_features(self, features, label):
         for part_name in features.keys():
             features[part_name] = tf.stack([
                 features[part_name]['cossine'],              \
@@ -114,9 +115,9 @@ class DataEncoder:
                 features[part_name]['triangular_inequality']
             ], axis=2)
 
-        return label, features
+        return features, label
 
-    def _scale_features_size(self, label, features):
+    def _scale_features_size(self, features, label):
         for part_name in features.keys():
             features[part_name].set_shape([None, None, None])
             features[part_name] = tf.expand_dims(features[part_name], axis=0)
@@ -125,7 +126,7 @@ class DataEncoder:
             features[part_name] = tf.squeeze(features[part_name])
             features[part_name].set_shape(self._output_shape + [3])
 
-        return label, features
+        return features, label
 
-    def _make_one_hot_encoding(self, label, features):
-        return tf.one_hot(label - self._label_offset_to_zero, self._n_classes), features
+    def _make_one_hot_encoding(self, features, label):
+        return features, tf.one_hot(label - self._label_offset_to_zero, self._n_classes)

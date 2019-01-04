@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 from collections import OrderedDict
 
-from skeletons_datasets.common.reader import DatasetReader
+from skeletons_datasets.tfrecords.features import decode
 from skeletons_datasets.ntu_rgbd.base import ACTION_NAMES, ONE_PERSON_ACTION
 from models.skeleton_net.encoding import DataEncoder
 
@@ -33,18 +33,21 @@ def main(class_id, dataset_part):
         sys.exit(-1)
 
     tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
-    dataset = DatasetReader(filenames=tfrecord_filename)
+    dataset = tf.data.TFRecordDataset(filenames=tfrecord_filename)
+    dataset = dataset.map(decode)
+    dataset = dataset.filter(lambda _, label: tf.equal(label, class_id))
+
     encoder = DataEncoder(
         output_shape=[112, 112],
         one_hot=True,
         n_classes=len(ONE_PERSON_ACTION),
         label_offset_to_zero=1)
-    dataset.filter(lambda label, _: tf.equal(label, class_id))
-    encoder.apply_to_dataset(dataset)
-    dataset_it = dataset.get_iterator()
+
+    dataset = encoder.apply_to_dataset(dataset)
+    dataset_it = dataset.make_one_shot_iterator()
 
     fig = plt.figure()
-    for label, features in dataset_it:
+    for features, label in dataset_it:
         h, w, _ = map(int, features['trunk'].shape)
         white_space = tf.constant(1.0, shape=[h, w / 2, 3])
         trunk = tf.concat([white_space, features['trunk'], white_space], axis=1)
