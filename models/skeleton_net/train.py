@@ -1,13 +1,17 @@
+import os
 import argparse
 
+import numpy as np
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.estimator import model_to_estimator
+from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard
 
 from skeletons_datasets.tfrecords.features import decode
-from skeletons_datasets.ntu_rgbd.base import ONE_PERSON_ACTION
+from skeletons_datasets.ntu_rgbd.base import ONE_PERSON_ACTION, ACTION_NAMES
 from models.skeleton_net.encoding import DataEncoder
-from models.skeleton_net.model import make_model
+from models.skeleton_net.model import make_model, InputsExporter
 from models.options.options_pb2 import SkeletonNetOptions, Datasets
 from models.options.utils import load_options
 
@@ -18,6 +22,7 @@ def main(options_filename):
     op = load_options(options_filename, SkeletonNetOptions)
     ds_basename = '{}.{{}}.tfrecords'.format(Datasets.Name(op.dataset).lower())
 
+    train_n_samples = sum(1 for _ in tf.io.tf_record_iterator(path=ds_basename.format('train')))
     train_dataset = tf.data.TFRecordDataset(filenames=ds_basename.format('train'))
     test_dataset = tf.data.TFRecordDataset(filenames=ds_basename.format('test'))
 
@@ -46,6 +51,7 @@ def main(options_filename):
     test_dataset = test_dataset.map(make_inputs)
 
     train_dataset = train_dataset                                      \
+        .repeat()                                                      \
         .shuffle(buffer_size=op.training.shuffle_size)                 \
         .batch(batch_size=op.training.batch_size, drop_remainder=True) \
         .prefetch(buffer_size=op.training.prefetch_size)
@@ -61,26 +67,25 @@ def main(options_filename):
         loss='categorical_crossentropy',
         metrics=['accuracy'])
 
-    config = tf.estimator.RunConfig(
-        save_summary_steps=op.estimator.save_summary_steps,
-        save_checkpoints_secs=op.estimator.save_checkpoints_secs,
-        keep_checkpoint_max=op.estimator.keep_checkpoint_max,
-        log_step_count_steps=op.estimator.log_step_count_steps)
+    ckpt_log_dir = os.path.join(op.storage.logs, 'cp-{epoch:04d}.ckpt')
+    train_features, train_labels = train_dataset.make_one_shot_iterator().get_next()
 
-    estimator = model_to_estimator(keras_model=model, model_dir=op.storage.logs, config=config)
-
-    train_spec = tf.estimator.TrainSpec(
-        input_fn=lambda: train_dataset.make_one_shot_iterator().get_next(),
-        max_steps=op.training.max_steps if op.training.max_steps > 0 else None)
-    eval_spec = tf.estimator.EvalSpec(
-        input_fn=lambda: test_dataset.make_one_shot_iterator().get_next())
-
-    epoch = 1
-    while epoch <= op.training.num_epochs or op.training.num_epochs < 0:
-        stats = tf.estimator.train_and_evaluate(
-            estimator=estimator, train_spec=train_spec, eval_spec=eval_spec)
-        print('Epoch: {}/{}'.format(epoch, op.training.num_epochs), stats)
-        epoch += 1
+    model.fit(
+        x=train_features,
+        y=train_labels,
+        epochs=op.training.num_epochs,
+        steps_per_epoch=int(train_n_samples / op.training.batch_size),
+        callbacks=[
+            ModelCheckpoint(filepath=ckpt_log_dir),
+            TensorBoard(log_dir=op.storage.logs, batch_size=op.training.batch_size),
+            InputsExporter(
+                features=train_features,
+                labels=train_labels,
+                log_dir=op.storage.logs,
+                class_labels=ACTION_NAMES,
+                period=50)
+        ],
+        verbose=2)
 
 
 if __name__ == '__main__':
