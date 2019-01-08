@@ -1,26 +1,32 @@
 import sys
 import logging
 import argparse
-from os.path import join
+from os import makedirs
+from os.path import join, exists
+from shutil import rmtree
 import numpy as np
 import tensorflow as tf
 
+from utils.logger import Logger
 from datasets.tfrecords.features import bytes_feature, int64_feature
 from datasets.ntu_rgbd.base import Loader
 
-FORMAT = '[%(asctime)-15s] %(message)s'
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
-log = logging.getLogger('ntu_rgbd_create_tfrecords')
+log = Logger(name='ntu_rgbd_create_tfrecords')
 
 
 def main(dataset_folder, output_folder):
     loader = Loader(folder=dataset_folder, load_headings=False)
 
     def make_tfrecords(dataset_part):
+        part_folder = join(output_folder, 'ntu_rgbd', dataset_part)
+        if exists(part_folder):
+            rmtree(part_folder)
+        makedirs(part_folder)
 
-        tfrecord_filename = join(output_folder, 'ntu_rgbd.{}.tfrecords'.format(dataset_part))
-        writer = tf.python_io.TFRecordWriter(tfrecord_filename)
+        def tfrecord_filename(label):
+            return join(part_folder, '{label}.tfrecords'.format(label=label))
 
+        writers = {}
         files = loader.list_files(only_valids=True, dataset_part=dataset_part)
 
         for n, file in enumerate(files):
@@ -38,12 +44,17 @@ def main(dataset_folder, output_folder):
             }
 
             example = tf.train.Example(features=tf.train.Features(feature=feature))
-            writer.write(example.SerializeToString())
+
+            if label not in writers:
+                writers[label] = tf.python_io.TFRecordWriter(tfrecord_filename(label))
+
+            writers[label].write(example.SerializeToString())
 
             if n % 100 == 0:
-                log.info('[{}] {}/{}'.format(tfrecord_filename, n, len(files)))
+                log.info('{}/{}'.format(n, len(files)))
 
-        writer.close()
+        for _, writer in writers.items():
+            writer.close()
         sys.stdout.flush()
 
     make_tfrecords('train')

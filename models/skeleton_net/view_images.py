@@ -10,32 +10,31 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 import cv2
 from collections import OrderedDict
+from os.path import join, exists
 
+from utils.logger import Logger
 from datasets.tfrecords.features import decode
 from datasets.ntu_rgbd.base import ACTION_NAMES, ONE_PERSON_ACTION
 from models.skeleton_net.encoding import DataEncoder
 
-FORMAT = '[%(asctime)-15s] %(message)s'
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
-log = logging.getLogger('ntu_rgbd_create_tfrecords')
+log = Logger(name='ntu_rgbd_create_tfrecords')
 
 
-def main(class_id, dataset_part):
+def main(dataset_folder, dataset_part, class_id):
     if str(class_id) not in ACTION_NAMES:
         classes = sorted(ACTION_NAMES.items(), key=lambda kv: int(kv[0]))
         classes = OrderedDict(filter(lambda kv: int(kv[0]) in ONE_PERSON_ACTION, classes))
-        log.critical('Invalid class_id. \n{}'.format(json.dumps(classes, indent=2)))
-        sys.exit(-1)
+        log.critical('Invalid class_id. \n{}', json.dumps(classes, indent=2))
 
-    log.info('{}'.format(dataset_part))
     if dataset_part not in ['train', 'test']:
         log.critical("Invalid dataset_part. Use 'train' or 'test'")
-        sys.exit(-1)
 
-    tfrecord_filename = 'ntu_rgbd.{}.tfrecords'.format(dataset_part)
+    tfrecord_filename = join(dataset_folder, dataset_part, '{}.tfrecords'.format(class_id))
+    if not exists(tfrecord_filename):
+        log.critical("Can't find *.tfrecord file\n'{}'", tfrecord_filename)
+
     dataset = tf.data.TFRecordDataset(filenames=tfrecord_filename)
     dataset = dataset.map(decode)
-    dataset = dataset.filter(lambda _, label: tf.equal(label, class_id))
 
     encoder = DataEncoder(
         output_shape=[112, 112],
@@ -76,6 +75,9 @@ if __name__ == '__main__':
         help='Dataset class number id. [{},{}]'.format(ONE_PERSON_ACTION[0],
                                                        ONE_PERSON_ACTION[-1]))
     parser.add_argument(
+        '--dataset-folder', required=True, type=str, help="Folder containing *.tfrecord files")
+
+    parser.add_argument(
         '--dataset-part',
         required=False,
         type=str,
@@ -83,4 +85,5 @@ if __name__ == '__main__':
         help="Dataset part, can be either 'train' or 'test'")
 
     args = parser.parse_args()
-    main(class_id=args.class_id, dataset_part=args.dataset_part)
+    main(
+        dataset_folder=args.dataset_folder, dataset_part=args.dataset_part, class_id=args.class_id)
