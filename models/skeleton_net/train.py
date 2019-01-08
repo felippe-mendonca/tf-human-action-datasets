@@ -8,8 +8,8 @@ from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.estimator import model_to_estimator
 from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard
 
-from skeletons_datasets.tfrecords.features import decode
-from skeletons_datasets.ntu_rgbd.base import ONE_PERSON_ACTION, ACTION_NAMES
+from datasets.tfrecords.features import decode
+from datasets.ntu_rgbd.base import ONE_PERSON_ACTION, ACTION_NAMES
 from models.skeleton_net.encoding import DataEncoder
 from models.skeleton_net.model import make_model, InputsExporter
 from models.options.options_pb2 import SkeletonNetOptions, Datasets

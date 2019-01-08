@@ -1,5 +1,5 @@
 import tensorflow as tf
-from skeletons_datasets.common.joints import JOINTS_MAP
+from datasets.common.joints import JOINTS_MAP
 
 
 class DataEncoder:

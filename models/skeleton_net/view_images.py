@@ -11,8 +11,8 @@ import numpy as np
 import cv2
 from collections import OrderedDict
 
-from skeletons_datasets.tfrecords.features import decode
-from skeletons_datasets.ntu_rgbd.base import ACTION_NAMES, ONE_PERSON_ACTION
+from datasets.tfrecords.features import decode
+from datasets.ntu_rgbd.base import ACTION_NAMES, ONE_PERSON_ACTION
 from models.skeleton_net.encoding import DataEncoder
 
 FORMAT = '[%(asctime)-15s] %(message)s'

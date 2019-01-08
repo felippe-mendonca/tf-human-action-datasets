@@ -5,8 +5,8 @@ from os.path import join
 import numpy as np
 import tensorflow as tf
 
-from skeletons_datasets.tfrecords.features import bytes_feature, int64_feature
-from skeletons_datasets.ntu_rgbd.base import Loader
+from datasets.tfrecords.features import bytes_feature, int64_feature
+from datasets.ntu_rgbd.base import Loader
 
 FORMAT = '[%(asctime)-15s] %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
@@ -17,6 +17,7 @@ def main(dataset_folder, output_folder):
     loader = Loader(folder=dataset_folder, load_headings=False)
 
     def make_tfrecords(dataset_part):
+
         tfrecord_filename = join(output_folder, 'ntu_rgbd.{}.tfrecords'.format(dataset_part))
         writer = tf.python_io.TFRecordWriter(tfrecord_filename)
 
