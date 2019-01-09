@@ -17,7 +17,7 @@
     "max_steps": 0
   },
   "storage": {
-    "dataset": "./",
+    "datasets_folder": "./",
     "logs": "./"
   },
   "dataset": "NTU_RGBD",

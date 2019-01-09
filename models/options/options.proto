@@ -13,7 +13,7 @@ message EstimatorConfig {
 }
 
 message Storage {
-  string dataset = 1;
+  string datasets_folder = 1;
   string logs = 2;
 }
 

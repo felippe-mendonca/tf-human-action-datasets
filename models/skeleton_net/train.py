@@ -1,5 +1,6 @@
-import os
 import argparse
+from os.path import join, exists
+from functools import reduce
 
 import numpy as np
 import tensorflow as tf
@@ -14,17 +15,29 @@ from models.skeleton_net.encoding import DataEncoder
 from models.skeleton_net.model import make_model, InputsExporter
 from models.options.options_pb2 import SkeletonNetOptions, Datasets
 from models.options.utils import load_options
+from utils.logger import Logger
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
+log = Logger('SkeletonNetTrain')
 
 
 def main(options_filename):
     op = load_options(options_filename, SkeletonNetOptions)
-    ds_basename = '{}.{{}}.tfrecords'.format(Datasets.Name(op.dataset).lower())
+    dataset_folder = join(op.storage.datasets_folder, Datasets.Name(op.dataset).lower())
+    if not exists(dataset_folder):
+        log.critical("Dataset folder doesn't exist.\n{}", dataset_folder)
 
-    train_n_samples = sum(1 for _ in tf.io.tf_record_iterator(path=ds_basename.format('train')))
-    train_dataset = tf.data.TFRecordDataset(filenames=ds_basename.format('train'))
-    test_dataset = tf.data.TFRecordDataset(filenames=ds_basename.format('test'))
+    train_filenames = list(
+        map(lambda x: join(dataset_folder, 'train', '{}.tfrecords'.format(x)), ONE_PERSON_ACTION))
+    test_filenames = list(
+        map(lambda x: join(dataset_folder, 'test', '{}.tfrecords'.format(x)), ONE_PERSON_ACTION))
+
+    predicate = lambda x, path: x + reduce(lambda x, _: x + 1, tf.io.tf_record_iterator(path=path), 0)
+    train_n_samples = reduce(predicate, train_filenames, 0)
+
+    train_dataset = tf.data.TFRecordDataset(filenames=train_filenames)
+    test_dataset = tf.data.TFRecordDataset(filenames=test_filenames)
 
     train_dataset = train_dataset.map(decode)
     test_dataset = test_dataset.map(decode)
@@ -67,7 +80,7 @@ def main(options_filename):
         loss='categorical_crossentropy',
         metrics=['accuracy'])
 
-    ckpt_log_dir = os.path.join(op.storage.logs, 'cp-{epoch:04d}.ckpt')
+    ckpt_log_dir = join(op.storage.logs, 'cp-{epoch:04d}.ckpt')
     train_features, train_labels = train_dataset.make_one_shot_iterator().get_next()
 
     model.fit(
