@@ -3,6 +3,39 @@ import re
 import numpy as np
 import pandas as pd
 
+"""
+Different of used on 'ModDrop: Adaptive multi-modal gesture recognition'.
+Wrist instead of Hand
+"""
+MAIN_JOINTS = [
+    'HIP_CENTER', 'SHOULDER_CENTER', 'HEAD', 'HIP_RIGHT', 'HIP_LEFT', 'SHOULDER_RIGHT',
+    'SHOULDER_LEFT', 'ELBOW_RIGHT', 'ELBOW_LEFT', 'WRIST_RIGHT', 'WRIST_LEFT'
+]
+
+"""
+The list of links below were created obeying breadth first search (BFS) order,
+with HIP_CENTER as root joint. The order of firsts' tuples elements correspond to 
+the visited order of BSD algorithm. Each link are created with the predecessor
+joint on the tree. Is extremilly importante ensure this order during
+normalization process.Follow this order is extremely important during normalization
+process. During its process, the start's joint is the second element of the 
+tuples (just an implementation detail).
+"""
+MAIN_LINKS = [
+    ('HIP_LEFT', 'HIP_CENTER'),
+    ('SHOULDER_CENTER', 'HIP_CENTER'),
+    ('HIP_RIGHT', 'HIP_CENTER'),
+    ('SHOULDER_RIGHT', 'SHOULDER_CENTER'),
+    ('HEAD', 'SHOULDER_CENTER'),
+    ('SHOULDER_LEFT', 'SHOULDER_CENTER'),
+    ('ELBOW_LEFT', 'SHOULDER_LEFT'),
+    ('ELBOW_RIGHT', 'SHOULDER_RIGHT'),
+    ('WRIST_LEFT', 'ELBOW_LEFT'),
+    ('WRIST_RIGHT', 'ELBOW_RIGHT'),
+]
+
+ROOT_JOINT = 'HIP_CENTER' 
+
 JOINTS = {
     'HIP_CENTER': 0,
     'SPINE': 1,
@@ -60,7 +93,7 @@ class Reader:
 
         self._samples = sorted(map(get_sample, filter(valid_sample, self._sample_files)))
         self._sample_it = -1
-        self._csv_columns = np.sort(np.hstack([np.arange(i, 9 * 20, 9) for i in range(3)]))
+        self._pose_csv_columns = np.sort(np.hstack([np.arange(i, 9 * 20, 9) for i in range(3)]))
 
     def __iter__(self):
         self._sample_it = -1
@@ -73,7 +106,7 @@ class Reader:
 
         sample = self._samples[self._sample_it]
         skeletons_file = os.path.join(self._folder, '{}_skeleton.csv'.format(sample))
-        poses = pd.read_csv(skeletons_file, sep=',', usecols=self._csv_columns)
+        poses = pd.read_csv(skeletons_file, sep=',', usecols=self._pose_csv_columns)
         labels_file = os.path.join(self._folder, '{}_labels.csv'.format(sample))
         labels = pd.read_csv(labels_file, sep=',', names=['class', 'begin', 'end'])
         return sample, poses, labels
