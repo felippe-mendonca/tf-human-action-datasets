@@ -1,8 +1,9 @@
-import os
 import re
+import json
+from os import walk
+from os.path import join, realpath, dirname
 import numpy as np
 import pandas as pd
-
 """
 Different of used on 'ModDrop: Adaptive multi-modal gesture recognition'.
 Wrist instead of Hand
@@ -11,7 +12,6 @@ MAIN_JOINTS = [
     'HIP_CENTER', 'SHOULDER_CENTER', 'HEAD', 'HIP_RIGHT', 'HIP_LEFT', 'SHOULDER_RIGHT',
     'SHOULDER_LEFT', 'ELBOW_RIGHT', 'ELBOW_LEFT', 'WRIST_RIGHT', 'WRIST_LEFT'
 ]
-
 """
 The list of links below were created obeying breadth first search (BFS) order,
 with HIP_CENTER as root joint. The order of firsts' tuples elements correspond to 
@@ -22,19 +22,54 @@ process. During its process, the start's joint is the second element of the
 tuples (just an implementation detail).
 """
 MAIN_LINKS = [
+    # first level
     ('HIP_LEFT', 'HIP_CENTER'),
     ('SHOULDER_CENTER', 'HIP_CENTER'),
     ('HIP_RIGHT', 'HIP_CENTER'),
-    ('SHOULDER_RIGHT', 'SHOULDER_CENTER'),
-    ('HEAD', 'SHOULDER_CENTER'),
+    # second level
     ('SHOULDER_LEFT', 'SHOULDER_CENTER'),
+    ('HEAD', 'SHOULDER_CENTER'),
+    ('SHOULDER_RIGHT', 'SHOULDER_CENTER'),
+    # third level
     ('ELBOW_LEFT', 'SHOULDER_LEFT'),
     ('ELBOW_RIGHT', 'SHOULDER_RIGHT'),
+    # fourth level
     ('WRIST_LEFT', 'ELBOW_LEFT'),
     ('WRIST_RIGHT', 'ELBOW_RIGHT'),
 ]
+"""
+Triples of anatomically connected joints.
+Used to compute inclination angles (alpha).
+(p_i, p_j, p_k)
+"""
+CONNECTED_JOINTS = [
+    ('HEAD', 'SHOULDER_CENTER', 'SHOULDER_LEFT'),
+    ('HEAD', 'SHOULDER_CENTER', 'SHOULDER_RIGHT'),
+    ('SHOULDER_CENTER', 'SHOULDER_LEFT', 'ELBOW_LEFT'),
+    ('SHOULDER_CENTER', 'SHOULDER_RIGHT', 'ELBOW_RIGHT'),
+    ('SHOULDER_LEFT', 'ELBOW_LEFT', 'WRIST_LEFT'),
+    ('SHOULDER_RIGHT', 'ELBOW_RIGHT', 'WRIST_RIGHT'),
+    ('SHOULDER_LEFT', 'SHOULDER_CENTER', 'HIP_CENTER'),
+    ('SHOULDER_RIGHT', 'SHOULDER_CENTER', 'HIP_CENTER'),
+    ('SHOULDER_CENTER', 'HIP_CENTER', 'HIP_LEFT'),
+    ('SHOULDER_CENTER', 'HIP_CENTER', 'HIP_RIGHT'),
+    ('HIP_LEFT', 'HIP_CENTER', 'HIP_RIGHT'),
+    ('SHOULDER_LEFT', 'SHOULDER_CENTER', 'SHOULDER_RIGHT'),
+    # virtual angles
+    ('ELBOW_LEFT', 'WRIST_LEFT', 'HIP_CENTER'),
+    ('ELBOW_RIGHT', 'WRIST_RIGHT', 'HIP_CENTER'),
+]
 
-ROOT_JOINT = 'HIP_CENTER' 
+"""
+Used to compute azimuth angles (beta).
+(p_i, p_j, p_k)
+"""
+CONNECTED_BONES = CONNECTED_JOINTS[:-2] + [
+    # virtual bones
+    ('WRIST_LEFT', 'HIP_CENTER', 'WRIST_RIGHT'),
+]
+
+ROOT_JOINT = 'HIP_CENTER'
 
 JOINTS = {
     'HIP_CENTER': 0,
@@ -81,11 +116,15 @@ LINKS = [
     ('ANKLE_RIGHT', 'FOOT_RIGHT'),
 ]
 
+actions_filename = join(dirname(realpath(__file__)), 'action_names.json')
+with open(actions_filename, 'r') as f:
+    ACTION_NAMES = json.load(f)
+
 
 class Reader:
     def __init__(self, folder):
         self._folder = folder
-        _, _, self._sample_files = next(os.walk(self._folder))
+        _, _, self._sample_files = next(walk(self._folder))
 
         is_sample = re.compile('^(Sample[0-9]{4})_skeleton.csv$')
         valid_sample = lambda x: is_sample.match(x)
@@ -105,9 +144,9 @@ class Reader:
             raise StopIteration
 
         sample = self._samples[self._sample_it]
-        skeletons_file = os.path.join(self._folder, '{}_skeleton.csv'.format(sample))
+        skeletons_file = join(self._folder, '{}_skeleton.csv'.format(sample))
         poses = pd.read_csv(skeletons_file, sep=',', usecols=self._pose_csv_columns)
-        labels_file = os.path.join(self._folder, '{}_labels.csv'.format(sample))
+        labels_file = join(self._folder, '{}_labels.csv'.format(sample))
         labels = pd.read_csv(labels_file, sep=',', names=['class', 'begin', 'end'])
         return sample, poses, labels
 
