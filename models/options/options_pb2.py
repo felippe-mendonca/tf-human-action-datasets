@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\roptions.proto\":\n\tOptimizer\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x02 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"0\n\x07Storage\x12\x17\n\x0f\x64\x61tasets_folder\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape*\x18\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x62\x06proto3')
+  serialized_pb=_b('\n\roptions.proto\":\n\tOptimizer\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x02 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"0\n\x07Storage\x12\x17\n\x0f\x64\x61tasets_folder\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape\"\xcc\x01\n\x1aGestureLocalizationOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x16\n\x0ehidden_neurons\x18\x06 \x01(\x05**\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x12\x10\n\x0cMONTALBANOV2\x10\x01\x62\x06proto3')
 )
 
 _DATASETS = _descriptor.EnumDescriptor(
@@ -33,16 +33,21 @@ _DATASETS = _descriptor.EnumDescriptor(
       name='NTU_RGBD', index=0, number=0,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MONTALBANOV2', index=1, number=1,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=625,
-  serialized_end=649,
+  serialized_start=832,
+  serialized_end=874,
 )
 _sym_db.RegisterEnumDescriptor(_DATASETS)
 
 Datasets = enum_type_wrapper.EnumTypeWrapper(_DATASETS)
 NTU_RGBD = 0
+MONTALBANOV2 = 1
 
 
 
@@ -336,18 +341,90 @@ _SKELETONNETOPTIONS = _descriptor.Descriptor(
   serialized_end=623,
 )
 
+
+_GESTURELOCALIZATIONOPTIONS = _descriptor.Descriptor(
+  name='GestureLocalizationOptions',
+  full_name='GestureLocalizationOptions',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='optimizer', full_name='GestureLocalizationOptions.optimizer', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='estimator', full_name='GestureLocalizationOptions.estimator', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='training', full_name='GestureLocalizationOptions.training', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='storage', full_name='GestureLocalizationOptions.storage', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='dataset', full_name='GestureLocalizationOptions.dataset', index=4,
+      number=5, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='hidden_neurons', full_name='GestureLocalizationOptions.hidden_neurons', index=5,
+      number=6, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=626,
+  serialized_end=830,
+)
+
 _SKELETONNETOPTIONS.fields_by_name['optimizer'].message_type = _OPTIMIZER
 _SKELETONNETOPTIONS.fields_by_name['estimator'].message_type = _ESTIMATORCONFIG
 _SKELETONNETOPTIONS.fields_by_name['training'].message_type = _TRAINING
 _SKELETONNETOPTIONS.fields_by_name['storage'].message_type = _STORAGE
 _SKELETONNETOPTIONS.fields_by_name['dataset'].enum_type = _DATASETS
 _SKELETONNETOPTIONS.fields_by_name['input_shape'].message_type = _SHAPE
+_GESTURELOCALIZATIONOPTIONS.fields_by_name['optimizer'].message_type = _OPTIMIZER
+_GESTURELOCALIZATIONOPTIONS.fields_by_name['estimator'].message_type = _ESTIMATORCONFIG
+_GESTURELOCALIZATIONOPTIONS.fields_by_name['training'].message_type = _TRAINING
+_GESTURELOCALIZATIONOPTIONS.fields_by_name['storage'].message_type = _STORAGE
+_GESTURELOCALIZATIONOPTIONS.fields_by_name['dataset'].enum_type = _DATASETS
 DESCRIPTOR.message_types_by_name['Optimizer'] = _OPTIMIZER
 DESCRIPTOR.message_types_by_name['EstimatorConfig'] = _ESTIMATORCONFIG
 DESCRIPTOR.message_types_by_name['Storage'] = _STORAGE
 DESCRIPTOR.message_types_by_name['Training'] = _TRAINING
 DESCRIPTOR.message_types_by_name['Shape'] = _SHAPE
 DESCRIPTOR.message_types_by_name['SkeletonNetOptions'] = _SKELETONNETOPTIONS
+DESCRIPTOR.message_types_by_name['GestureLocalizationOptions'] = _GESTURELOCALIZATIONOPTIONS
 DESCRIPTOR.enum_types_by_name['Datasets'] = _DATASETS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -392,6 +469,13 @@ SkeletonNetOptions = _reflection.GeneratedProtocolMessageType('SkeletonNetOption
   # @@protoc_insertion_point(class_scope:SkeletonNetOptions)
   ))
 _sym_db.RegisterMessage(SkeletonNetOptions)
+
+GestureLocalizationOptions = _reflection.GeneratedProtocolMessageType('GestureLocalizationOptions', (_message.Message,), dict(
+  DESCRIPTOR = _GESTURELOCALIZATIONOPTIONS,
+  __module__ = 'options_pb2'
+  # @@protoc_insertion_point(class_scope:GestureLocalizationOptions)
+  ))
+_sym_db.RegisterMessage(GestureLocalizationOptions)
 
 
 # @@protoc_insertion_point(module_scope)
