@@ -1,6 +1,6 @@
 {
   "optimizer": {
-    "learning_rate": 1e-5
+    "learning_rate": 1e-3
   },
   "estimator": {
     "save_summary_steps": 100,
