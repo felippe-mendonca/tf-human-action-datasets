@@ -27,6 +27,7 @@ message Training {
 
 enum Datasets {
   NTU_RGBD = 0;
+  MONTALBANOV2 = 1;
 }
 
 message Shape {
@@ -41,4 +42,13 @@ message SkeletonNetOptions {
   Storage storage = 4;
   Datasets dataset = 5;
   Shape input_shape = 6;
+}
+
+message GestureLocalizationOptions {
+  Optimizer optimizer = 1;
+  EstimatorConfig estimator = 2;
+  Training training = 3;
+  Storage storage = 4;
+  Datasets dataset = 5;
+  int32 hidden_neurons = 6;
 }

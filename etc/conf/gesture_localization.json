@@ -1,6 +1,7 @@
 {
   "optimizer": {
-    "learning_rate": 1e-3
+    "learning_rate": 1e-2,
+    "learning_decay": 0.05
   },
   "estimator": {
     "save_summary_steps": 100,
@@ -11,8 +12,8 @@
   "training": {
     "batch_size": 32,
     "num_epochs": 10000,
-    "shuffle_size": 1280,
-    "prefetch_size": 16,
+    "shuffle_size": 3200,
+    "prefetch_size": 160,
     "max_steps": 0
   },
   "storage": {
@@ -20,5 +21,5 @@
     "logs": "./logs"
   },
   "dataset": "MONTALBANOV2",
-  "hidden_neurons": 300
+  "hidden_neurons": 500
 }

@@ -71,6 +71,7 @@ def main(dataset_folder, output_folder):
             json.dump(obj=all_metadata, fp=f, sort_keys=True, indent=2)
 
     make_tfrecords('train')
+    make_tfrecords('test')
     make_tfrecords('validation')
 
 
