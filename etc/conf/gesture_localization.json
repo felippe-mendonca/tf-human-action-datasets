@@ -21,9 +21,18 @@
     "logs": "./logs"
   },
   "dataset": "MONTALBANOV2",
-  "hidden_neurons": 300,
+  "hidden_layers": [
+    {
+      "units": 1024,
+      "activation": "RELU"
+    },
+    {
+      "units": 256,
+      "activation": "RELU"
+    }
+  ],
   "telegram": {
-    "id": 000000000,
+    "id": 0000000000
     "token": "000000000000000000000000000000000000000000000"
   }
 }

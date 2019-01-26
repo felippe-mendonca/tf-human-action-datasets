@@ -81,7 +81,7 @@ def main(options_filename):
         .batch(batch_size=op.training.batch_size, drop_remainder=True) \
         .prefetch(buffer_size=op.training.prefetch_size)
 
-    model = make_model(182, hidden_neurons=op.hidden_neurons)
+    model = make_model(182, hidden_layers=op.hidden_layers, print_summary=True)
     model.compile(
         optimizer=SGD(),
         loss='binary_crossentropy',

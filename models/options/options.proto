@@ -40,6 +40,21 @@ message Telegram {
   int32 id = 2;
 }
 
+enum ActivationFunction {
+  RELU = 0;
+  SOFTMAX = 1;
+}
+
+
+message DenseLayer {
+  message Dropout {
+    float rate = 1;
+  }
+  uint32 units = 1;
+  ActivationFunction activation = 2;
+  Dropout dropout = 3;
+}
+
 message SkeletonNetOptions {
   Optimizer optimizer = 1;
   EstimatorConfig estimator = 2;
@@ -55,6 +70,6 @@ message GestureLocalizationOptions {
   Training training = 3;
   Storage storage = 4;
   Datasets dataset = 5;
-  int32 hidden_neurons = 6;
-  Telegram telegram = 7;
+  Telegram telegram = 6;
+  repeated DenseLayer hidden_layers = 7;
 }

@@ -5,16 +5,27 @@ from tensorflow.python.keras.layers import Dropout
 from tensorflow.python.keras.layers import Activation
 from tensorflow.python.keras.callbacks import Callback
 
+from models.options.options_pb2 import ActivationFunction
 
-def make_model(n_features, hidden_neurons):
+def make_model(n_features, hidden_layers=None, print_summary=False):
     inputs = Input(shape=(n_features, ), name='features')
-    x = Dense(1024, use_bias=True, kernel_initializer='glorot_uniform')(inputs)
-    x = Activation(activation='relu')(x)
-    x = Dense(256, use_bias=True, kernel_initializer='glorot_uniform')(x)
-    x = Activation(activation='relu')(x)
+    x = inputs
+    if hidden_layers is not None:
+        for layer in hidden_layers:
+            x = Dense(units=layer.units, use_bias=True, kernel_initializer='glorot_uniform')(x)
+            if layer.HasField('dropout'):
+                x = Dropout(rate=layer.dropout.rate)(x)
+            activation = ActivationFunction.Name(layer.activation).lower()
+            x = Activation(activation=activation)(x)
+
     x = Dense(2, use_bias=True, kernel_initializer='glorot_uniform')(x)
     outputs = Activation(activation='softmax')(x)
-    return Model(inputs, outputs)
+    model = Model(inputs, outputs)
+
+    if print_summary:
+        model.summary()
+
+    return model
 
 class EvalTrainDataset(Callback):
     def __init__(self, model, train_dataset, steps, interval=1):
