@@ -8,9 +8,10 @@ from tensorflow.python.keras.callbacks import Callback
 
 def make_model(n_features, hidden_neurons):
     inputs = Input(shape=(n_features, ), name='features')
-    x = Dense(hidden_neurons, use_bias=True, kernel_initializer='glorot_uniform')(inputs)
+    x = Dense(1024, use_bias=True, kernel_initializer='glorot_uniform')(inputs)
     x = Activation(activation='relu')(x)
-    x = Dropout(rate=0.25)(x)
+    x = Dense(256, use_bias=True, kernel_initializer='glorot_uniform')(x)
+    x = Activation(activation='relu')(x)
     x = Dense(2, use_bias=True, kernel_initializer='glorot_uniform')(x)
     outputs = Activation(activation='softmax')(x)
     return Model(inputs, outputs)

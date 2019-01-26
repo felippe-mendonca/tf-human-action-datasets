@@ -3,16 +3,18 @@ from os.path import join, exists
 from functools import reduce
 import json
 
+import numpy as np
 import tensorflow as tf
+tf.set_random_seed(1234)
 
-from tensorflow.python.keras.optimizers import Adam
+from tensorflow.python.keras.optimizers import Adam, SGD
 from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.model import make_model, EvalTrainDataset
 from models.options.options_pb2 import GestureLocalizationOptions, Datasets
 from models.options.utils import load_options
-from models.base.callbacks import TensorBoardMetrics
+from models.base.callbacks import TensorBoardMetrics, LearningRateScheduler, TelegramExporter
 from utils.logger import Logger
 """
 Monkey patch to fix issue on 'standardize_single_array' function.
@@ -81,7 +83,7 @@ def main(options_filename):
 
     model = make_model(182, hidden_neurons=op.hidden_neurons)
     model.compile(
-        optimizer=Adam(lr=op.optimizer.learning_rate, decay=op.optimizer.learning_decay),
+        optimizer=SGD(),
         loss='binary_crossentropy',
         metrics=['accuracy'])
 
@@ -95,8 +97,11 @@ def main(options_filename):
         validation_steps=validation_steps,
         callbacks=[
             ModelCheckpoint(filepath=ckpt_log_dir),
-            # TensorBoard(log_dir=op.storage.logs, batch_size=op.training.batch_size),
-            TensorBoardMetrics(log_dir=op.storage.logs),
+            LearningRateScheduler(
+                lambda epoch, _: op.optimizer.learning_rate * np.exp(-op.optimizer.learning_decay * epoch)
+            ),
+            TensorBoardMetrics(log_dir=op.storage.logs, model=model),
+            TelegramExporter(telegram_id=op.telegram.id, token=op.telegram.token),
             CSVLogger(filename=csv_log_dir)
         ],
         verbose=1)

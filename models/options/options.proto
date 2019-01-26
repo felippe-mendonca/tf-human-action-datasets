@@ -35,6 +35,11 @@ message Shape {
   int32 height = 2;
 }
 
+message Telegram {
+  string token = 1;
+  int32 id = 2;
+}
+
 message SkeletonNetOptions {
   Optimizer optimizer = 1;
   EstimatorConfig estimator = 2;
@@ -51,4 +56,5 @@ message GestureLocalizationOptions {
   Storage storage = 4;
   Datasets dataset = 5;
   int32 hidden_neurons = 6;
+  Telegram telegram = 7;
 }
