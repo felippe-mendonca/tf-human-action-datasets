@@ -11,9 +11,10 @@ from tensorflow.python.keras.optimizers import Adam, SGD
 from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger
 
 from datasets.tfrecords.features import decode
-from models.gesture_localization.model import make_model, EvalTrainDataset
+from models.gesture_localization.model import make_model
 from models.options.options_pb2 import GestureLocalizationOptions, Datasets
 from models.options.utils import load_options
+from models.base.utils import get_logs_dir, gen_model_name
 from models.base.callbacks import TensorBoardMetrics, LearningRateScheduler, TelegramExporter
 from utils.logger import Logger
 """
@@ -81,14 +82,16 @@ def main(options_filename):
         .batch(batch_size=op.training.batch_size, drop_remainder=True) \
         .prefetch(buffer_size=op.training.prefetch_size)
 
-    model = make_model(182, hidden_layers=op.hidden_layers, print_summary=True)
+    model_name = gen_model_name()
+    model = make_model(182, hidden_layers=op.hidden_layers, print_summary=True, name=model_name)
     model.compile(
         optimizer=SGD(),
         loss='binary_crossentropy',
         metrics=['accuracy'])
 
-    ckpt_log_dir = join(op.storage.logs, 'model-{epoch:04d}-{val_acc:.2f}.hdf5')
-    csv_log_dir = join(op.storage.logs, 'logs.csv')
+    logs_dir = get_logs_dir(options=op, model_name=model_name)
+    ckpt_log_dir = join(logs_dir, 'model-{epoch:04d}-{val_acc:.4f}.hdf5')
+    csv_log_dir = join(logs_dir, 'logs.csv')
     model.fit(
         x=train_dataset,
         epochs=op.training.num_epochs,
@@ -100,7 +103,7 @@ def main(options_filename):
             LearningRateScheduler(
                 lambda epoch, _: op.optimizer.learning_rate * np.exp(-op.optimizer.learning_decay * epoch)
             ),
-            TensorBoardMetrics(log_dir=op.storage.logs, model=model),
+            TensorBoardMetrics(log_dir=logs_dir),
             TelegramExporter(telegram_id=op.telegram.id, token=op.telegram.token),
             CSVLogger(filename=csv_log_dir)
         ],

@@ -8,10 +8,9 @@ from tensorflow.python.keras import backend as K
 
 
 class TensorBoardMetrics(Callback):
-    def __init__(self, log_dir='./logs', write_graph=True, model=None):
+    def __init__(self, log_dir='./logs', write_graph=True):
         super(TensorBoardMetrics, self).__init__()
         self.log_dir = log_dir
-        self.model = model
         self.sess = K.get_session()
 
         self.writer = tf.summary.FileWriter(self.log_dir, graph=self.sess.graph)
@@ -115,7 +114,7 @@ class TelegramExporter(Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
-        text = 'Epoch {}.\n'.format(epoch)
-        for k, v in logs.items():
-            text += '  {:>10}: {:.4f}\n'.format(k, v)
+        text = 'Model {}\nEpoch {}.\n'.format(self.model.name, epoch)
+        for k, v in sorted(logs.items()):
+            text += '{}: {:.4f}\n'.format(k, v)
         self.send_message(text)

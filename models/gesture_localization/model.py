@@ -7,7 +7,7 @@ from tensorflow.python.keras.callbacks import Callback
 
 from models.options.options_pb2 import ActivationFunction
 
-def make_model(n_features, hidden_layers=None, print_summary=False):
+def make_model(n_features, hidden_layers=None, print_summary=False, name=None):
     inputs = Input(shape=(n_features, ), name='features')
     x = inputs
     if hidden_layers is not None:
@@ -20,7 +20,7 @@ def make_model(n_features, hidden_layers=None, print_summary=False):
 
     x = Dense(2, use_bias=True, kernel_initializer='glorot_uniform')(x)
     outputs = Activation(activation='softmax')(x)
-    model = Model(inputs, outputs)
+    model = Model(inputs, outputs, name=name)
 
     if print_summary:
         model.summary()
