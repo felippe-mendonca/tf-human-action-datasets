@@ -3,6 +3,7 @@ from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.layers import Input
 from tensorflow.python.keras.layers import Dropout
 from tensorflow.python.keras.layers import Activation
+from tensorflow.python.keras.layers import BatchNormalization
 from tensorflow.python.keras.callbacks import Callback
 
 from models.options.options_pb2 import ActivationFunction
@@ -17,6 +18,8 @@ def make_model(n_features, hidden_layers=None, print_summary=False, name=None):
                 x = Dropout(rate=layer.dropout.rate)(x)
             activation = ActivationFunction.Name(layer.activation).lower()
             x = Activation(activation=activation)(x)
+            if layer.batch_normalization:
+                x = BatchNormalization()(x)
 
     x = Dense(2, use_bias=True, kernel_initializer='glorot_uniform')(x)
     outputs = Activation(activation='softmax')(x)

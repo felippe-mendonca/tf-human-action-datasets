@@ -1,5 +1,6 @@
+import re
 import argparse
-from os.path import join, exists
+from os.path import join, exists, basename
 from functools import reduce
 import json
 
@@ -9,10 +10,11 @@ tf.set_random_seed(1234)
 
 from tensorflow.python.keras.optimizers import Adam, SGD
 from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger
+from tensorflow.python.keras.models import load_model
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.model import make_model
-from models.options.options_pb2 import GestureLocalizationOptions, Datasets
+from models.options.options_pb2 import GestureLocalizationOptions, Datasets, Optimizers
 from models.options.utils import load_options
 from models.base.utils import get_logs_dir, gen_model_name
 from models.base.callbacks import TensorBoardMetrics, LearningRateScheduler, TelegramExporter
@@ -30,11 +32,10 @@ from tf_patch.training_utils import standardize_single_array as _standardize_sin
 engine.training_utils.standardize_single_array = _standardize_single_array
 
 tf.logging.set_verbosity(tf.logging.INFO)
-
 log = Logger('GestureLocalizationTrain')
 
 
-def load_metadata(dataset_folder, dataset_type):
+def load_metadata(dataset_folder, dataset_type=None):
     filename = join(dataset_folder, dataset_type + '.json')
     with open(filename, 'r') as f:
         data = json.load(f)
@@ -45,7 +46,7 @@ def load_metadata(dataset_folder, dataset_type):
     return gesture, not_gesture
 
 
-def main(options_filename):
+def main(options_filename, model_file=None, weights=None, reset_lr=False):
     op = load_options(options_filename, GestureLocalizationOptions)
     dataset_name = Datasets.Name(op.dataset).lower()
     dataset_folder = join(op.storage.datasets_folder, dataset_name,
@@ -82,37 +83,70 @@ def main(options_filename):
         .batch(batch_size=op.training.batch_size, drop_remainder=True) \
         .prefetch(buffer_size=op.training.prefetch_size)
 
-    model_name = gen_model_name()
-    model = make_model(182, hidden_layers=op.hidden_layers, print_summary=True, name=model_name)
-    model.compile(
-        optimizer=SGD(),
-        loss='binary_crossentropy',
-        metrics=['accuracy'])
+    if model_file is None:
+        model_name = gen_model_name()
+        initial_epoch = 0
+        model = make_model(
+            182, hidden_layers=op.hidden_layers, print_summary=True, name=model_name)
+        if op.optimizer.type == Optimizers.Value('NOT_SPECIFIED'):
+            optimizer = 'sgd'
+        else:
+            optimizer = Optimizers.Name(op.optimizer.type).lower()
+        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+        if weights is not None:
+            model.load_weights(filepath=weights, by_name=True)
+    else:
+        log.info("Restoring model from '{}'.", model_file)
+        model = load_model(filepath=model_file, compile=True)
+        model_name = model.name
+        mf_match = re.match('^model-([0-9]{4,})-[0-9]{1}.[0-9]{4}.hdf5$', basename(model_file))
+        initial_epoch = 0 if mf_match is None else int(mf_match.groups()[0])
 
     logs_dir = get_logs_dir(options=op, model_name=model_name)
     ckpt_log_dir = join(logs_dir, 'model-{epoch:04d}-{val_acc:.4f}.hdf5')
     csv_log_dir = join(logs_dir, 'logs.csv')
+
+    callbacks = [ModelCheckpoint(filepath=ckpt_log_dir)]
+
+    if op.optimizer.type == Optimizers.Value('NOT_SPECIFIED'):
+        lr = op.optimizer.learning_rate
+        decay = op.optimizer.learning_decay
+        if model_file is not None and reset_lr:
+            lr_scheduler = lambda epoch, _: lr * np.exp(-decay * (epoch - initial_epoch))
+        else:
+            lr_scheduler = lambda epoch, _: lr * np.exp(-decay * epoch)
+        callbacks += [LearningRateScheduler(schedule=lr_scheduler)]
+
+    callbacks += [
+        TensorBoardMetrics(log_dir=logs_dir),
+        TelegramExporter(telegram_id=op.telegram.id, token=op.telegram.token),
+        CSVLogger(filename=csv_log_dir)
+    ]
+
     model.fit(
         x=train_dataset,
         epochs=op.training.num_epochs,
+        initial_epoch=initial_epoch,
         steps_per_epoch=steps_per_epoch,
         validation_data=validation_dataset,
         validation_steps=validation_steps,
-        callbacks=[
-            ModelCheckpoint(filepath=ckpt_log_dir),
-            LearningRateScheduler(
-                lambda epoch, _: op.optimizer.learning_rate * np.exp(-op.optimizer.learning_decay * epoch)
-            ),
-            TensorBoardMetrics(log_dir=logs_dir),
-            TelegramExporter(telegram_id=op.telegram.id, token=op.telegram.token),
-            CSVLogger(filename=csv_log_dir)
-        ],
+        callbacks=callbacks,
         verbose=1)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--options', required=True, type=str, help='Path to options .json file')
-
+    parser.add_argument(
+        '--model-file',
+        type=str,
+        help='Path to .hdf5 model file to pre-load model and their weights.')
+    parser.add_argument(
+        '--weights', type=str, help='Path to .hdf5 model file containing model weights.')
+    parser.add_argument('--reset-lr', action='store_true')
     args = parser.parse_args()
-    main(options_filename=args.options)
+    main(
+        options_filename=args.options,
+        model_file=args.model_file,
+        weights=args.weights,
+        reset_lr=args.reset_lr)

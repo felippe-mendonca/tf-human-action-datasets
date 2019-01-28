@@ -6,7 +6,7 @@ from google.protobuf.json_format import MessageToDict
 
 
 def gen_model_name(prefix=''):
-    return '{}{:X}'.format(prefix, uuid4().int >> 104)
+    return '{}{:06X}'.format(prefix, uuid4().int >> 104)
 
 
 def get_logs_dir(options, model_name=None):
@@ -15,7 +15,8 @@ def get_logs_dir(options, model_name=None):
 
     model_name = model_name or gen_model_name()
     logs_dir = join(options.storage.logs, model_name)
-    makedirs(logs_dir)
+    if not exists(logs_dir):
+        makedirs(logs_dir)
     options_dict = MessageToDict(
         message=options, including_default_value_fields=True, preserving_proto_field_name=True)
 

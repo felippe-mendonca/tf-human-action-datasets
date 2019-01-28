@@ -1,8 +1,19 @@
 syntax = "proto3";
 
+
+enum Optimizers {
+  NOT_SPECIFIED = 0;
+  SGD = 1;
+  ADAGRAD = 2;
+  ADADELTA = 3;
+  ADAM = 4;
+  ADAMAX = 5;
+}
+
 message Optimizer {
-  float learning_rate = 1;
-  float learning_decay = 2;
+  Optimizers type = 1;
+  float learning_rate = 2;
+  float learning_decay = 3;
 }
 
 message EstimatorConfig {
@@ -53,6 +64,7 @@ message DenseLayer {
   uint32 units = 1;
   ActivationFunction activation = 2;
   Dropout dropout = 3;
+  bool batch_normalization = 4;
 }
 
 message SkeletonNetOptions {

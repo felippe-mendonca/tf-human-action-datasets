@@ -20,9 +20,48 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\roptions.proto\":\n\tOptimizer\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x02 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"0\n\x07Storage\x12\x17\n\x0f\x64\x61tasets_folder\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"%\n\x08Telegram\x12\r\n\x05token\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\"\x83\x01\n\nDenseLayer\x12\r\n\x05units\x18\x01 \x01(\r\x12\'\n\nactivation\x18\x02 \x01(\x0e\x32\x13.ActivationFunction\x12$\n\x07\x64ropout\x18\x03 \x01(\x0b\x32\x13.DenseLayer.Dropout\x1a\x17\n\x07\x44ropout\x12\x0c\n\x04rate\x18\x01 \x01(\x02\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape\"\xf5\x01\n\x1aGestureLocalizationOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x08telegram\x18\x06 \x01(\x0b\x32\t.Telegram\x12\"\n\rhidden_layers\x18\x07 \x03(\x0b\x32\x0b.DenseLayer**\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x12\x10\n\x0cMONTALBANOV2\x10\x01*+\n\x12\x41\x63tivationFunction\x12\x08\n\x04RELU\x10\x00\x12\x0b\n\x07SOFTMAX\x10\x01\x62\x06proto3')
+  serialized_pb=_b('\n\roptions.proto\"U\n\tOptimizer\x12\x19\n\x04type\x18\x01 \x01(\x0e\x32\x0b.Optimizers\x12\x15\n\rlearning_rate\x18\x02 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x03 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"0\n\x07Storage\x12\x17\n\x0f\x64\x61tasets_folder\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"%\n\x08Telegram\x12\r\n\x05token\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\"\xa0\x01\n\nDenseLayer\x12\r\n\x05units\x18\x01 \x01(\r\x12\'\n\nactivation\x18\x02 \x01(\x0e\x32\x13.ActivationFunction\x12$\n\x07\x64ropout\x18\x03 \x01(\x0b\x32\x13.DenseLayer.Dropout\x12\x1b\n\x13\x62\x61tch_normalization\x18\x04 \x01(\x08\x1a\x17\n\x07\x44ropout\x12\x0c\n\x04rate\x18\x01 \x01(\x02\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape\"\xf5\x01\n\x1aGestureLocalizationOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x08telegram\x18\x06 \x01(\x0b\x32\t.Telegram\x12\"\n\rhidden_layers\x18\x07 \x03(\x0b\x32\x0b.DenseLayer*Y\n\nOptimizers\x12\x11\n\rNOT_SPECIFIED\x10\x00\x12\x07\n\x03SGD\x10\x01\x12\x0b\n\x07\x41\x44\x41GRAD\x10\x02\x12\x0c\n\x08\x41\x44\x41\x44\x45LTA\x10\x03\x12\x08\n\x04\x41\x44\x41M\x10\x04\x12\n\n\x06\x41\x44\x41MAX\x10\x05**\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x12\x10\n\x0cMONTALBANOV2\x10\x01*+\n\x12\x41\x63tivationFunction\x12\x08\n\x04RELU\x10\x00\x12\x0b\n\x07SOFTMAX\x10\x01\x62\x06proto3')
 )
 
+_OPTIMIZERS = _descriptor.EnumDescriptor(
+  name='Optimizers',
+  full_name='Optimizers',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='NOT_SPECIFIED', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SGD', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ADAGRAD', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ADADELTA', index=3, number=3,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ADAM', index=4, number=4,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ADAMAX', index=5, number=5,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1102,
+  serialized_end=1191,
+)
+_sym_db.RegisterEnumDescriptor(_OPTIMIZERS)
+
+Optimizers = enum_type_wrapper.EnumTypeWrapper(_OPTIMIZERS)
 _DATASETS = _descriptor.EnumDescriptor(
   name='Datasets',
   full_name='Datasets',
@@ -40,8 +79,8 @@ _DATASETS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1046,
-  serialized_end=1088,
+  serialized_start=1193,
+  serialized_end=1235,
 )
 _sym_db.RegisterEnumDescriptor(_DATASETS)
 
@@ -63,12 +102,18 @@ _ACTIVATIONFUNCTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1090,
-  serialized_end=1133,
+  serialized_start=1237,
+  serialized_end=1280,
 )
 _sym_db.RegisterEnumDescriptor(_ACTIVATIONFUNCTION)
 
 ActivationFunction = enum_type_wrapper.EnumTypeWrapper(_ACTIVATIONFUNCTION)
+NOT_SPECIFIED = 0
+SGD = 1
+ADAGRAD = 2
+ADADELTA = 3
+ADAM = 4
+ADAMAX = 5
 NTU_RGBD = 0
 MONTALBANOV2 = 1
 RELU = 0
@@ -84,15 +129,22 @@ _OPTIMIZER = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='learning_rate', full_name='Optimizer.learning_rate', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      name='type', full_name='Optimizer.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='learning_rate', full_name='Optimizer.learning_rate', index=1,
+      number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='learning_decay', full_name='Optimizer.learning_decay', index=1,
-      number=2, type=2, cpp_type=6, label=1,
+      name='learning_decay', full_name='Optimizer.learning_decay', index=2,
+      number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -110,7 +162,7 @@ _OPTIMIZER = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=17,
-  serialized_end=75,
+  serialized_end=102,
 )
 
 
@@ -161,8 +213,8 @@ _ESTIMATORCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=78,
-  serialized_end=213,
+  serialized_start=105,
+  serialized_end=240,
 )
 
 
@@ -199,8 +251,8 @@ _STORAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=215,
-  serialized_end=263,
+  serialized_start=242,
+  serialized_end=290,
 )
 
 
@@ -258,8 +310,8 @@ _TRAINING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=265,
-  serialized_end=379,
+  serialized_start=292,
+  serialized_end=406,
 )
 
 
@@ -296,8 +348,8 @@ _SHAPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=381,
-  serialized_end=419,
+  serialized_start=408,
+  serialized_end=446,
 )
 
 
@@ -334,8 +386,8 @@ _TELEGRAM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=421,
-  serialized_end=458,
+  serialized_start=448,
+  serialized_end=485,
 )
 
 
@@ -365,8 +417,8 @@ _DENSELAYER_DROPOUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=569,
-  serialized_end=592,
+  serialized_start=625,
+  serialized_end=648,
 )
 
 _DENSELAYER = _descriptor.Descriptor(
@@ -397,6 +449,13 @@ _DENSELAYER = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='batch_normalization', full_name='DenseLayer.batch_normalization', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -409,8 +468,8 @@ _DENSELAYER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=461,
-  serialized_end=592,
+  serialized_start=488,
+  serialized_end=648,
 )
 
 
@@ -475,8 +534,8 @@ _SKELETONNETOPTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=595,
-  serialized_end=796,
+  serialized_start=651,
+  serialized_end=852,
 )
 
 
@@ -548,10 +607,11 @@ _GESTURELOCALIZATIONOPTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=799,
-  serialized_end=1044,
+  serialized_start=855,
+  serialized_end=1100,
 )
 
+_OPTIMIZER.fields_by_name['type'].enum_type = _OPTIMIZERS
 _DENSELAYER_DROPOUT.containing_type = _DENSELAYER
 _DENSELAYER.fields_by_name['activation'].enum_type = _ACTIVATIONFUNCTION
 _DENSELAYER.fields_by_name['dropout'].message_type = _DENSELAYER_DROPOUT
@@ -577,6 +637,7 @@ DESCRIPTOR.message_types_by_name['Telegram'] = _TELEGRAM
 DESCRIPTOR.message_types_by_name['DenseLayer'] = _DENSELAYER
 DESCRIPTOR.message_types_by_name['SkeletonNetOptions'] = _SKELETONNETOPTIONS
 DESCRIPTOR.message_types_by_name['GestureLocalizationOptions'] = _GESTURELOCALIZATIONOPTIONS
+DESCRIPTOR.enum_types_by_name['Optimizers'] = _OPTIMIZERS
 DESCRIPTOR.enum_types_by_name['Datasets'] = _DATASETS
 DESCRIPTOR.enum_types_by_name['ActivationFunction'] = _ACTIVATIONFUNCTION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
