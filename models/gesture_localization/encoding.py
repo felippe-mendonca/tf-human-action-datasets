@@ -58,12 +58,18 @@ class DataEncoder:
         self._poses_s.append(pose_s)
 
         vec_features = [
-            pose_s[self._nref_joints, :].ravel(), velocity_s[self._nref_joints, :].ravel(),
-            acceleration_s[self._nref_joints, :].ravel(), inclination_angles, azimuth_angles,
-            bending_angles, pairwise_distances
+            self.normalize(np.linalg.norm(velocity_s[self._nref_joints, :], axis=1)),
+            self.normalize(np.linalg.norm(acceleration_s[self._nref_joints, :], axis=1)),
+            np.abs(np.cos(inclination_angles)),
+            np.abs(np.sin(inclination_angles)),
+            np.abs(np.cos(azimuth_angles)),
+            np.abs(np.sin(azimuth_angles)),
+            np.abs(np.cos(bending_angles)),
+            np.abs(np.sin(bending_angles)),
+            self.normalize(pairwise_distances),
         ]
 
-        return np.hstack(map(self.normalize, vec_features))
+        return np.hstack(vec_features)
 
     def normalize_pose(self, pose):
         root_joint = pose[self._main_joints_dict[ROOT_JOINT], :]
