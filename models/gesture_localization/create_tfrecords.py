@@ -40,6 +40,7 @@ def main(dataset_folder, output_folder):
                 one_hot_labels[label['begin']:label['end'] + 1] = 1
 
             metadata = {'samples': {'gesture': 0, 'not_gesture': 0}}
+            encoder.reset()
             for pose, label in zip(PoseIterator(poses), one_hot_labels):
                 if np.all(pose == 0.0):
                     continue
@@ -71,8 +72,8 @@ def main(dataset_folder, output_folder):
             json.dump(obj=all_metadata, fp=f, sort_keys=True, indent=2)
 
     make_tfrecords('train')
-    make_tfrecords('test')
     make_tfrecords('validation')
+    make_tfrecords('test')
 
 
 if __name__ == '__main__':

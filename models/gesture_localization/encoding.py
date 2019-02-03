@@ -34,7 +34,14 @@ class DataEncoder:
         self._connected_joints = to_index(CONNECTED_JOINTS)
         self._connected_bones = to_index(CONNECTED_BONES)
 
+        self._ux = np.array([1, 0, 0])
+        self._uy = np.array([0, 1, 0])
+        self._uz = np.array([0, 0, 1])
+
         self._poses_s = deque(maxlen=2)
+
+    def reset(self):
+        self._poses_s.clear()
 
     def encode(self, pose):
 
@@ -48,6 +55,7 @@ class DataEncoder:
             self._poses_s.append(pose_s)
             return None
 
+        self._update_axes(pose_s)
         velocity_s = pose_s - self._poses_s[-1]
         acceleration_s = pose_s - 2 * self._poses_s[-1] + self._poses_s[-2]
         inclination_angles = self.inclination_angles(pose_s)
@@ -58,20 +66,19 @@ class DataEncoder:
         self._poses_s.append(pose_s)
 
         vec_features = [
-            self.normalize(np.linalg.norm(velocity_s[self._nref_joints, :], axis=1)),
-            self.normalize(np.linalg.norm(acceleration_s[self._nref_joints, :], axis=1)),
-            np.abs(np.cos(inclination_angles)),
-            np.abs(np.sin(inclination_angles)),
-            np.abs(np.cos(azimuth_angles)),
-            np.abs(np.sin(azimuth_angles)),
-            np.abs(np.cos(bending_angles)),
-            np.abs(np.sin(bending_angles)),
-            self.normalize(pairwise_distances),
+            pose_s[self._nref_joints, :].ravel(), velocity_s[self._nref_joints, :].ravel(),
+            acceleration_s[self._nref_joints, :].ravel(), inclination_angles, azimuth_angles,
+            bending_angles, pairwise_distances
         ]
 
-        return np.hstack(vec_features)
+        return np.hstack(map(self.normalize, vec_features))
 
     def normalize_pose(self, pose):
+        """
+        This normalization consists in apply a translation in all points related to the
+        hip center joint (root joint) and then resize all the links based on the average
+        distances previously computed using all training dataset.
+        """
         root_joint = pose[self._main_joints_dict[ROOT_JOINT], :]
         pose = pose - root_joint
         norm_pose = np.copy(pose)
@@ -84,12 +91,6 @@ class DataEncoder:
 
         return norm_pose
 
-    def joint_velocities(self, pose):
-        return pose
-
-    def joint_accelerations(self, pose):
-        return pose
-
     def inclination_angles(self, pose):
         angles = []
         for i, j, k in self._connected_joints:
@@ -100,22 +101,20 @@ class DataEncoder:
         return np.array(angles)
 
     def azimuth_angles(self, pose):
-        ux, _, _ = self._body_referential(pose)
         angles = []
         for i, j, k, in self._connected_bones:
             pji = pose[j, :] - pose[i, :]
             pkj = pose[k, :] - pose[j, :]
             a = pji / (np.dot(pkj, pji) / np.dot(pji, pji))
-            v1 = ux - a * np.dot(ux, pji)
+            v1 = self._ux - a * np.dot(self._ux, pji)
             v2 = pkj - a * np.dot(pkj, pji)
             angles.append(self._vecs_angle(v1, v2))
 
         return np.array(angles)
 
     def bending_angles(self, pose):
-        _, _, uz = self._body_referential(pose)
         fpose = pose[self._nref_joints, :]
-        return np.array([np.arccos(np.dot(uz, p) / np.linalg.norm(p)) for p in fpose])
+        return np.array([np.arccos(np.dot(self._uz, p) / np.linalg.norm(p)) for p in fpose])
 
     def pairwise_distances(self, pose):
         return np.array([np.linalg.norm(pose[i, :] - pose[j, :]) for i, j in self._pair_joints])
@@ -123,15 +122,18 @@ class DataEncoder:
     def _vecs_angle(self, v1, v2):
         return np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
 
-    def _body_referential(self, pose):
-        ux = pose[self._main_joints_dict['SHOULDER_RIGHT'], :] - \
-             pose[self._main_joints_dict['SHOULDER_LEFT'], :]
-        ux = ux / np.linalg.norm(ux)
-        uy = pose[self._main_joints_dict['HIP_CENTER'], :] - \
-             pose[self._main_joints_dict['SHOULDER_CENTER'], :]
-        uy = uy / np.linalg.norm(uy)
-        uz = np.cross(ux, uy)
-        return ux, uy, uz
+    def _update_axes(self, pose):
+        self._ux = pose[self._main_joints_dict['SHOULDER_RIGHT'], :] - \
+                   pose[self._main_joints_dict['SHOULDER_LEFT'], :]
+        self._uy = pose[self._main_joints_dict['SHOULDER_CENTER'], :] - \
+                   pose[self._main_joints_dict['HIP_CENTER'], :]
+        self._ux = self._ux / np.linalg.norm(self._ux)
+        self._uy = self._uy / np.linalg.norm(self._uy)
+
+        proj_x_y = self._uy * np.dot(self._ux, self._uy)
+        self._ux = self._ux - proj_x_y
+        self._ux = self._ux / np.linalg.norm(self._ux)
+        self._uz = np.cross(self._ux, self._uy)
 
     def normalize(self, array):
         return (array - array.mean()) / array.std()
