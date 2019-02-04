@@ -56,10 +56,16 @@ enum ActivationFunction {
   SOFTMAX = 1;
 }
 
+enum DropoutType {
+    STANDARD = 0;
+    GAUSSIAN = 1;
+    ALPHA = 2;
+  }
 
 message DenseLayer {
   message Dropout {
     float rate = 1;
+    DropoutType type = 2;
   }
   uint32 units = 1;
   ActivationFunction activation = 2;

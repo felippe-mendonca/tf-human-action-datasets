@@ -11,13 +11,23 @@ from datasets.montalbanov2.base import CONNECTED_JOINTS, CONNECTED_BONES
 
 class DataEncoder:
     def __init__(self, dataset_folder, smooth_factor=0.8):
+        def raise_missing_file(filename):
+            raise Exception("File '{}' doesn't exist".format(filename))
+
         avg_distances_file = join(dataset_folder, 'average_distances.csv')
         if not exists(avg_distances_file):
-            raise Exception(
-                "'average_distances.csv' file doesn't exist on {} folder".format(dataset_folder))
+            raise_missing_file(avg_distances_file)
+        mean_features_file = join(dataset_folder, 'montalbanov2_tfrecords', 'mean_features.csv')
+        if not exists(mean_features_file):
+            raise_missing_file(mean_features_file)
+        std_features_file = join(dataset_folder, 'montalbanov2_tfrecords', 'std_features.csv')
+        if not exists(std_features_file):
+            raise_missing_file(std_features_file)
 
         self._alpha = smooth_factor
         self._avg_distances = pd.read_csv(avg_distances_file)
+        self._mean_features = np.squeeze(np.array(pd.read_csv(mean_features_file, header=None)))
+        self._std_features = np.squeeze(np.array(pd.read_csv(std_features_file, header=None)))
         self._main_joints = [JOINTS[x] for x in MAIN_JOINTS]
         self._main_joints_dict = {joint: pos for pos, joint in enumerate(MAIN_JOINTS)}
         all_joints = set(self._main_joints_dict.values())
@@ -39,6 +49,13 @@ class DataEncoder:
         self._uz = np.array([0, 0, 1])
 
         self._poses_s = deque(maxlen=2)
+
+    def standardize_features(self, features, *args):
+        features = (features - self._mean_features) / self._std_features
+        return (features, *args)
+    
+    def get_dataset_stats(self):
+        return self._mean_features, self._std_features
 
     def reset(self):
         self._poses_s.clear()
@@ -71,7 +88,7 @@ class DataEncoder:
             bending_angles, pairwise_distances
         ]
 
-        return np.hstack(map(self.normalize, vec_features))
+        return np.hstack(vec_features)
 
     def normalize_pose(self, pose):
         """
@@ -134,6 +151,3 @@ class DataEncoder:
         self._ux = self._ux - proj_x_y
         self._ux = self._ux / np.linalg.norm(self._ux)
         self._uz = np.cross(self._ux, self._uy)
-
-    def normalize(self, array):
-        return (array - array.mean()) / array.std()

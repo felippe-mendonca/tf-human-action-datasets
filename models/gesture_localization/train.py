@@ -14,6 +14,7 @@ from tensorflow.python.keras.models import load_model
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.model import make_model
+from models.gesture_localization.encoding import DataEncoder
 from models.options.options_pb2 import GestureLocalizationOptions, Datasets, Optimizers
 from models.options.utils import load_options
 from models.base.utils import get_logs_dir, gen_model_name
@@ -49,17 +50,26 @@ def load_metadata(dataset_folder, dataset_type=None):
 def main(options_filename, model_file=None, weights=None, reset_lr=False):
     op = load_options(options_filename, GestureLocalizationOptions)
     dataset_name = Datasets.Name(op.dataset).lower()
-    dataset_folder = join(op.storage.datasets_folder, dataset_name,
-                          '{}_tfrecords'.format(dataset_name))
+    dataset_folder = join(op.storage.datasets_folder, dataset_name)
+    dataset_tfrecords_folder = join(dataset_folder, '{}_tfrecords'.format(dataset_name))
+
+    encoder = DataEncoder(dataset_folder=dataset_folder)
+    mean_data, std_data = encoder.get_dataset_stats()
+    mean_data, std_data = tf.constant(mean_data), tf.constant(std_data)
 
     def make_dataset(dataset_type):
         def make_one_hot_label(feature, label):
             return feature, tf.one_hot(label, 2)
 
-        folder = join(dataset_folder, dataset_type)
+        def standardize_feature(feature, label):
+            feature = (feature - mean_data) / std_data
+            return feature, label
+
+        folder = join(dataset_tfrecords_folder, dataset_type)
         files = tf.data.Dataset().list_files(join(folder, 'Sample*.tfrecords'))
         dataset = tf.data.TFRecordDataset(filenames=files)
         dataset = dataset.map(decode)
+        dataset = dataset.map(standardize_feature)
         dataset = dataset.map(make_one_hot_label)
         return dataset
 
@@ -67,9 +77,12 @@ def main(options_filename, model_file=None, weights=None, reset_lr=False):
     validation_dataset = make_dataset('validation')
     test_dataset = make_dataset('test')
 
-    train_gesture, train_not_gesture = load_metadata(dataset_folder, 'train')
-    validation_gesture, validation_not_gesture = load_metadata(dataset_folder, 'validation')
-    test_gesture, test_not_gesture = load_metadata(dataset_folder, 'test')
+    def part_metadata(part):
+        return load_metadata(dataset_tfrecords_folder, part)
+
+    train_gesture, train_not_gesture = part_metadata('train')
+    validation_gesture, validation_not_gesture = part_metadata('validation')
+    test_gesture, test_not_gesture = part_metadata('test')
     steps_per_epoch = int((train_gesture + train_not_gesture) / op.training.batch_size)
     validation_steps = int((validation_gesture + validation_not_gesture) / op.training.batch_size)
 
