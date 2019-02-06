@@ -1,7 +1,8 @@
 import sys
 import logging
-from google.protobuf.json_format import Parse, MessageToJson
+from google.protobuf.json_format import Parse, MessageToJson, MessageToDict
 from utils.logger import Logger
+from json import dumps
 
 
 def load_options(filename, schema):
@@ -24,3 +25,16 @@ def load_options(filename, schema):
                 log.critical("Unable to load options from '{}'", filename)
     except Exception as ex:
         log.critical("Unable to open file '{}'", filename)
+
+
+def make_description(options, remove_fields=None, indent=2):
+    op_dict = MessageToDict(
+        message=options, including_default_value_fields=True, preserving_proto_field_name=True)
+
+    hidden_fields = ['telegram', 'storage', 'estimator']
+    if remove_fields is not None:
+        hidden_fields += remove_fields
+    for field in hidden_fields:
+        if field in op_dict:
+            del op_dict[field]
+    return dumps(op_dict, indent=indent, sort_keys=True)

@@ -4,10 +4,12 @@ from os import makedirs
 from os.path import join, exists
 from uuid import uuid4
 from google.protobuf.json_format import MessageToDict
+from datetime import datetime as dt
 
 
-def gen_model_name(prefix=''):
-    return '{}{:06X}'.format(prefix, uuid4().int >> 104)
+def gen_model_name():
+    now = dt.now().strftime('%Y-%m-%d_%H-%m')
+    return '{}_{:06X}'.format(now, uuid4().int >> 104)
 
 
 def get_logs_dir(options, model_name=None):

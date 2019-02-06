@@ -1,17 +1,20 @@
 import re
 from os.path import join
 import numpy as np
-import telegram
+from telegram import Bot
+from telegram.ext import Updater, CommandHandler
+from telegram.ext.dispatcher import run_async
 import tensorflow as tf
 from tensorflow.python.keras.callbacks import Callback
 from tensorflow.python.keras import backend as K
 
 
 class TensorBoardMetrics(Callback):
-    def __init__(self, log_dir='./logs', write_graph=True):
+    def __init__(self, log_dir='./logs', write_graph=True, description=None):
         super(TensorBoardMetrics, self).__init__()
         self.log_dir = log_dir
         self.sess = K.get_session()
+        self.description = description
 
         self.writer = tf.summary.FileWriter(self.log_dir, graph=self.sess.graph)
         self.train_writer = tf.summary.FileWriter(join(self.log_dir, 'train'))
@@ -31,6 +34,10 @@ class TensorBoardMetrics(Callback):
 
             maybe_train = self.train_re.match(name)
             maybe_validation = self.validation_re.match(name)
+            if epoch == 0 and self.model is not None:
+                metadata = tf.SummaryMetadata(summary_description=self.description)
+                summary_value.metadata.CopyFrom(metadata)
+
             if maybe_train is not None:
                 summary_value.tag = maybe_train.groups()[0]
                 self.train_writer.add_summary(summary, epoch)
@@ -90,7 +97,7 @@ class TelegramExporter(Callback):
     To ger your telegram_id, send '/get_my_id' to  @FalconGate_Bot
     """
 
-    def __init__(self, telegram_id, token):
+    def __init__(self, telegram_id, token, description=None):
         super(TelegramExporter, self).__init__()
 
         if not isinstance(telegram_id, int):
@@ -100,7 +107,18 @@ class TelegramExporter(Callback):
             raise Exception("Telegram's 'token' must be a string.")
 
         self.telegram_id = telegram_id
-        self.bot = telegram.Bot(token)
+        self.description = description or ""
+        self.bot = Bot(token)
+        self.updater = Updater(token)
+        self.dp = self.updater.dispatcher
+        handler = CommandHandler(command="describe", callback=self.get_description)
+        self.dp.add_handler(handler=handler)
+        self.updater.start_polling()
+
+    @run_async
+    def get_description(self, bot, update):
+        global description_reply
+        update.message.reply_text(description_reply)
 
     def send_message(self, text):
         try:
@@ -112,9 +130,14 @@ class TelegramExporter(Callback):
         text = 'Start training model {}.'.format(self.model.name)
         self.send_message(text)
 
+        #initialization of 'description_reply' variable is done here because
+        # model member of this class is only filled after the end of constructor.
+        global description_reply
+        description_reply = "{}\n{}".format(self.model.name, self.description)
+
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
-        text = 'Model {}\nEpoch {}.\n'.format(self.model.name, epoch)
+        text = 'Model {}\nepoch: {}\n'.format(self.model.name, epoch)
         for k, v in sorted(logs.items()):
             text += '{}: {:.4f}\n'.format(k, v)
         self.send_message(text)

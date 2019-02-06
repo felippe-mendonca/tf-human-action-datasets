@@ -16,7 +16,7 @@ from datasets.tfrecords.features import decode
 from models.gesture_localization.model import make_model
 from models.gesture_localization.encoding import DataEncoder
 from models.options.options_pb2 import GestureLocalizationOptions, Datasets, Optimizers
-from models.options.utils import load_options
+from models.options.utils import load_options, make_description
 from models.base.utils import get_logs_dir, gen_model_name
 from models.base.callbacks import TensorBoardMetrics, LearningRateScheduler, TelegramExporter
 from utils.logger import Logger
@@ -112,11 +112,11 @@ def main(options_filename, model_file=None, weights=None, reset_lr=False):
         log.info("Restoring model from '{}'.", model_file)
         model = load_model(filepath=model_file, compile=True)
         model_name = model.name
-        mf_match = re.match('^model-([0-9]{4,})-[0-9]{1}.[0-9]{4}.hdf5$', basename(model_file))
+        mf_match = re.match('^model-([0-9]{4,})-[0-9]{1}.[0-9]{4}.h5$', basename(model_file))
         initial_epoch = 0 if mf_match is None else int(mf_match.groups()[0])
 
     logs_dir = get_logs_dir(options=op, model_name=model_name)
-    ckpt_log_dir = join(logs_dir, 'model-{epoch:04d}-{val_acc:.4f}.hdf5')
+    ckpt_log_dir = join(logs_dir, 'model-{epoch:04d}-{val_acc:.4f}.h5')
     csv_log_dir = join(logs_dir, 'logs.csv')
 
     callbacks = [ModelCheckpoint(filepath=ckpt_log_dir)]
@@ -130,36 +130,52 @@ def main(options_filename, model_file=None, weights=None, reset_lr=False):
             lr_scheduler = lambda epoch, _: lr * np.exp(-decay * epoch)
         callbacks += [LearningRateScheduler(schedule=lr_scheduler)]
 
+    description = make_description(op)
     callbacks += [
-        TensorBoardMetrics(log_dir=logs_dir),
-        TelegramExporter(telegram_id=op.telegram.id, token=op.telegram.token),
+        TensorBoardMetrics(log_dir=logs_dir, description=description),
+        TelegramExporter(
+            telegram_id=op.telegram.id, token=op.telegram.token, description=description),
         CSVLogger(filename=csv_log_dir)
     ]
 
+    log.info("Starting training model: {}", model_name)
     model.fit(
         x=train_dataset,
         epochs=op.training.num_epochs,
         initial_epoch=initial_epoch,
-        steps_per_epoch=steps_per_epoch,
+        steps_per_epoch=100,
         validation_data=validation_dataset,
-        validation_steps=validation_steps,
+        validation_steps=100,
         callbacks=callbacks,
         verbose=1)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--options', required=True, type=str, help='Path to options .json file')
     parser.add_argument(
-        '--model-file',
+        '--options',
+        required=True,
         type=str,
-        help='Path to .hdf5 model file to pre-load model and their weights.')
+        help="""Path to options *.json file that matches with a 
+        GestureLocalizationOptions protobuf message.""")
     parser.add_argument(
-        '--weights', type=str, help='Path to .hdf5 model file containing model weights.')
+        '--model',
+        type=str,
+        help="""Path to *.h5 model file to pre-load model and their weights. 
+        Any model configuration on *.json will be descosidered. Passing a model 
+        file you can either restor a training with the same step and learning rate, 
+        or user the option --reset-lr to restart it using the parameters of 
+        configuration file.""")
+    parser.add_argument(
+        '--weights',
+        type=str,
+        help="""Path to .hdf5 model file containing model weights. 
+        This option will be desconsired if a model file were specified.""")
     parser.add_argument('--reset-lr', action='store_true')
     args = parser.parse_args()
+
     main(
         options_filename=args.options,
-        model_file=args.model_file,
+        model_file=args.model,
         weights=args.weights,
         reset_lr=args.reset_lr)
