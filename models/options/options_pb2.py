@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\roptions.proto\"U\n\tOptimizer\x12\x19\n\x04type\x18\x01 \x01(\x0e\x32\x0b.Optimizers\x12\x15\n\rlearning_rate\x18\x02 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x03 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"0\n\x07Storage\x12\x17\n\x0f\x64\x61tasets_folder\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"%\n\x08Telegram\x12\r\n\x05token\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\"\xbc\x01\n\nDenseLayer\x12\r\n\x05units\x18\x01 \x01(\r\x12\'\n\nactivation\x18\x02 \x01(\x0e\x32\x13.ActivationFunction\x12$\n\x07\x64ropout\x18\x03 \x01(\x0b\x32\x13.DenseLayer.Dropout\x12\x1b\n\x13\x62\x61tch_normalization\x18\x04 \x01(\x08\x1a\x33\n\x07\x44ropout\x12\x0c\n\x04rate\x18\x01 \x01(\x02\x12\x1a\n\x04type\x18\x02 \x01(\x0e\x32\x0c.DropoutType\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape\"\xf5\x01\n\x1aGestureLocalizationOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x08telegram\x18\x06 \x01(\x0b\x32\t.Telegram\x12\"\n\rhidden_layers\x18\x07 \x03(\x0b\x32\x0b.DenseLayer\"\xab\x02\n$GridSearchGestureLocalizationOptions\x12\x19\n\x07storage\x18\x01 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x02 \x01(\x0e\x32\t.Datasets\x12\x43\n\nparam_grid\x18\x03 \x01(\x0b\x32/.GridSearchGestureLocalizationOptions.ParamGrid\x1a\x86\x01\n\tParamGrid\x12\x14\n\x0cn_estimators\x18\x01 \x03(\r\x12\x11\n\tcriterion\x18\x02 \x03(\t\x12\x11\n\tmax_depth\x18\x03 \x03(\r\x12\x14\n\x0cmax_features\x18\x04 \x03(\t\x12\x11\n\tbootstrap\x18\x05 \x03(\x08\x12\x14\n\x0c\x63lass_weight\x18\x06 \x03(\t*Y\n\nOptimizers\x12\x11\n\rNOT_SPECIFIED\x10\x00\x12\x07\n\x03SGD\x10\x01\x12\x0b\n\x07\x41\x44\x41GRAD\x10\x02\x12\x0c\n\x08\x41\x44\x41\x44\x45LTA\x10\x03\x12\x08\n\x04\x41\x44\x41M\x10\x04\x12\n\n\x06\x41\x44\x41MAX\x10\x05**\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x12\x10\n\x0cMONTALBANOV2\x10\x01*8\n\x12\x41\x63tivationFunction\x12\x08\n\x04RELU\x10\x00\x12\x0b\n\x07SOFTMAX\x10\x01\x12\x0b\n\x07SIGMOID\x10\x02*4\n\x0b\x44ropoutType\x12\x0c\n\x08STANDARD\x10\x00\x12\x0c\n\x08GAUSSIAN\x10\x01\x12\t\n\x05\x41LPHA\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\roptions.proto\"U\n\tOptimizer\x12\x19\n\x04type\x18\x01 \x01(\x0e\x32\x0b.Optimizers\x12\x15\n\rlearning_rate\x18\x02 \x01(\x02\x12\x16\n\x0elearning_decay\x18\x03 \x01(\x02\"\x87\x01\n\x0f\x45stimatorConfig\x12\x1a\n\x12save_summary_steps\x18\x01 \x01(\x05\x12\x1d\n\x15save_checkpoints_secs\x18\x02 \x01(\x05\x12\x1b\n\x13keep_checkpoint_max\x18\x03 \x01(\x05\x12\x1c\n\x14log_step_count_steps\x18\x04 \x01(\x05\"0\n\x07Storage\x12\x17\n\x0f\x64\x61tasets_folder\x18\x01 \x01(\t\x12\x0c\n\x04logs\x18\x02 \x01(\t\"r\n\x08Training\x12\x12\n\nbatch_size\x18\x01 \x01(\x05\x12\x12\n\nnum_epochs\x18\x02 \x01(\x05\x12\x14\n\x0cshuffle_size\x18\x03 \x01(\x05\x12\x15\n\rprefetch_size\x18\x04 \x01(\x05\x12\x11\n\tmax_steps\x18\x05 \x01(\x05\"&\n\x05Shape\x12\r\n\x05width\x18\x01 \x01(\x05\x12\x0e\n\x06height\x18\x02 \x01(\x05\"%\n\x08Telegram\x12\r\n\x05token\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\"\xbc\x01\n\nDenseLayer\x12\r\n\x05units\x18\x01 \x01(\r\x12\'\n\nactivation\x18\x02 \x01(\x0e\x32\x13.ActivationFunction\x12$\n\x07\x64ropout\x18\x03 \x01(\x0b\x32\x13.DenseLayer.Dropout\x12\x1b\n\x13\x62\x61tch_normalization\x18\x04 \x01(\x08\x1a\x33\n\x07\x44ropout\x12\x0c\n\x04rate\x18\x01 \x01(\x02\x12\x1a\n\x04type\x18\x02 \x01(\x0e\x32\x0c.DropoutType\"\xc9\x01\n\x12SkeletonNetOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x0binput_shape\x18\x06 \x01(\x0b\x32\x06.Shape\"\xf5\x01\n\x1aGestureLocalizationOptions\x12\x1d\n\toptimizer\x18\x01 \x01(\x0b\x32\n.Optimizer\x12#\n\testimator\x18\x02 \x01(\x0b\x32\x10.EstimatorConfig\x12\x1b\n\x08training\x18\x03 \x01(\x0b\x32\t.Training\x12\x19\n\x07storage\x18\x04 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x05 \x01(\x0e\x32\t.Datasets\x12\x1b\n\x08telegram\x18\x06 \x01(\x0b\x32\t.Telegram\x12\"\n\rhidden_layers\x18\x07 \x03(\x0b\x32\x0b.DenseLayer\"\xab\x02\n$GridSearchGestureLocalizationOptions\x12\x19\n\x07storage\x18\x01 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x02 \x01(\x0e\x32\t.Datasets\x12\x43\n\nparam_grid\x18\x03 \x01(\x0b\x32/.GridSearchGestureLocalizationOptions.ParamGrid\x1a\x86\x01\n\tParamGrid\x12\x14\n\x0cn_estimators\x18\x01 \x03(\r\x12\x11\n\tcriterion\x18\x02 \x03(\t\x12\x11\n\tmax_depth\x18\x03 \x03(\r\x12\x14\n\x0cmax_features\x18\x04 \x03(\t\x12\x11\n\tbootstrap\x18\x05 \x03(\x08\x12\x14\n\x0c\x63lass_weight\x18\x06 \x03(\t\"z\n,TrainRandomForestGestureLocalizationOptinons\x12\x19\n\x07storage\x18\x01 \x01(\x0b\x32\x08.Storage\x12\x1a\n\x07\x64\x61taset\x18\x02 \x01(\x0e\x32\t.Datasets\x12\x13\n\x0bparams_file\x18\x03 \x01(\t*Y\n\nOptimizers\x12\x11\n\rNOT_SPECIFIED\x10\x00\x12\x07\n\x03SGD\x10\x01\x12\x0b\n\x07\x41\x44\x41GRAD\x10\x02\x12\x0c\n\x08\x41\x44\x41\x44\x45LTA\x10\x03\x12\x08\n\x04\x41\x44\x41M\x10\x04\x12\n\n\x06\x41\x44\x41MAX\x10\x05**\n\x08\x44\x61tasets\x12\x0c\n\x08NTU_RGBD\x10\x00\x12\x10\n\x0cMONTALBANOV2\x10\x01*8\n\x12\x41\x63tivationFunction\x12\x08\n\x04RELU\x10\x00\x12\x0b\n\x07SOFTMAX\x10\x01\x12\x0b\n\x07SIGMOID\x10\x02*4\n\x0b\x44ropoutType\x12\x0c\n\x08STANDARD\x10\x00\x12\x0c\n\x08GAUSSIAN\x10\x01\x12\t\n\x05\x41LPHA\x10\x02\x62\x06proto3')
 )
 
 _OPTIMIZERS = _descriptor.EnumDescriptor(
@@ -56,8 +56,8 @@ _OPTIMIZERS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1432,
-  serialized_end=1521,
+  serialized_start=1556,
+  serialized_end=1645,
 )
 _sym_db.RegisterEnumDescriptor(_OPTIMIZERS)
 
@@ -79,8 +79,8 @@ _DATASETS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1523,
-  serialized_end=1565,
+  serialized_start=1647,
+  serialized_end=1689,
 )
 _sym_db.RegisterEnumDescriptor(_DATASETS)
 
@@ -106,8 +106,8 @@ _ACTIVATIONFUNCTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1567,
-  serialized_end=1623,
+  serialized_start=1691,
+  serialized_end=1747,
 )
 _sym_db.RegisterEnumDescriptor(_ACTIVATIONFUNCTION)
 
@@ -133,8 +133,8 @@ _DROPOUTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1625,
-  serialized_end=1677,
+  serialized_start=1749,
+  serialized_end=1801,
 )
 _sym_db.RegisterEnumDescriptor(_DROPOUTTYPE)
 
@@ -763,6 +763,51 @@ _GRIDSEARCHGESTURELOCALIZATIONOPTIONS = _descriptor.Descriptor(
   serialized_end=1430,
 )
 
+
+_TRAINRANDOMFORESTGESTURELOCALIZATIONOPTINONS = _descriptor.Descriptor(
+  name='TrainRandomForestGestureLocalizationOptinons',
+  full_name='TrainRandomForestGestureLocalizationOptinons',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='storage', full_name='TrainRandomForestGestureLocalizationOptinons.storage', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='dataset', full_name='TrainRandomForestGestureLocalizationOptinons.dataset', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='params_file', full_name='TrainRandomForestGestureLocalizationOptinons.params_file', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1432,
+  serialized_end=1554,
+)
+
 _OPTIMIZER.fields_by_name['type'].enum_type = _OPTIMIZERS
 _DENSELAYER_DROPOUT.fields_by_name['type'].enum_type = _DROPOUTTYPE
 _DENSELAYER_DROPOUT.containing_type = _DENSELAYER
@@ -785,6 +830,8 @@ _GRIDSEARCHGESTURELOCALIZATIONOPTIONS_PARAMGRID.containing_type = _GRIDSEARCHGES
 _GRIDSEARCHGESTURELOCALIZATIONOPTIONS.fields_by_name['storage'].message_type = _STORAGE
 _GRIDSEARCHGESTURELOCALIZATIONOPTIONS.fields_by_name['dataset'].enum_type = _DATASETS
 _GRIDSEARCHGESTURELOCALIZATIONOPTIONS.fields_by_name['param_grid'].message_type = _GRIDSEARCHGESTURELOCALIZATIONOPTIONS_PARAMGRID
+_TRAINRANDOMFORESTGESTURELOCALIZATIONOPTINONS.fields_by_name['storage'].message_type = _STORAGE
+_TRAINRANDOMFORESTGESTURELOCALIZATIONOPTINONS.fields_by_name['dataset'].enum_type = _DATASETS
 DESCRIPTOR.message_types_by_name['Optimizer'] = _OPTIMIZER
 DESCRIPTOR.message_types_by_name['EstimatorConfig'] = _ESTIMATORCONFIG
 DESCRIPTOR.message_types_by_name['Storage'] = _STORAGE
@@ -795,6 +842,7 @@ DESCRIPTOR.message_types_by_name['DenseLayer'] = _DENSELAYER
 DESCRIPTOR.message_types_by_name['SkeletonNetOptions'] = _SKELETONNETOPTIONS
 DESCRIPTOR.message_types_by_name['GestureLocalizationOptions'] = _GESTURELOCALIZATIONOPTIONS
 DESCRIPTOR.message_types_by_name['GridSearchGestureLocalizationOptions'] = _GRIDSEARCHGESTURELOCALIZATIONOPTIONS
+DESCRIPTOR.message_types_by_name['TrainRandomForestGestureLocalizationOptinons'] = _TRAINRANDOMFORESTGESTURELOCALIZATIONOPTINONS
 DESCRIPTOR.enum_types_by_name['Optimizers'] = _OPTIMIZERS
 DESCRIPTOR.enum_types_by_name['Datasets'] = _DATASETS
 DESCRIPTOR.enum_types_by_name['ActivationFunction'] = _ACTIVATIONFUNCTION
@@ -886,6 +934,13 @@ GridSearchGestureLocalizationOptions = _reflection.GeneratedProtocolMessageType(
   ))
 _sym_db.RegisterMessage(GridSearchGestureLocalizationOptions)
 _sym_db.RegisterMessage(GridSearchGestureLocalizationOptions.ParamGrid)
+
+TrainRandomForestGestureLocalizationOptinons = _reflection.GeneratedProtocolMessageType('TrainRandomForestGestureLocalizationOptinons', (_message.Message,), dict(
+  DESCRIPTOR = _TRAINRANDOMFORESTGESTURELOCALIZATIONOPTINONS,
+  __module__ = 'options_pb2'
+  # @@protoc_insertion_point(class_scope:TrainRandomForestGestureLocalizationOptinons)
+  ))
+_sym_db.RegisterMessage(TrainRandomForestGestureLocalizationOptinons)
 
 
 # @@protoc_insertion_point(module_scope)

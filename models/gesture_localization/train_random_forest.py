@@ -1,11 +1,9 @@
 import argparse
 from os.path import join
 import json
-from google.protobuf.json_format import MessageToDict
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
 from sklearn.externals import joblib
 
 import tensorflow as tf
@@ -14,19 +12,12 @@ tf.set_random_seed(1234)
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.encoding import DataEncoder
-from models.options.options_pb2 import GridSearchGestureLocalizationOptions, Datasets
+from models.options.options_pb2 import TrainRandomForestGestureLocalizationOptinons, Datasets
 from models.options.utils import load_options, make_description
 from utils.logger import Logger
 
 tf.logging.set_verbosity(tf.logging.INFO)
-log = Logger('SearchRandomForest')
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
+log = Logger('RandomForestTrain')
 
 
 def load_metadata(dataset_folder, dataset_type=None):
@@ -41,7 +32,7 @@ def load_metadata(dataset_folder, dataset_type=None):
 
 
 def main(options_filename):
-    op = load_options(options_filename, GridSearchGestureLocalizationOptions)
+    op = load_options(options_filename, TrainRandomForestGestureLocalizationOptinons)
     dataset_name = Datasets.Name(op.dataset).lower()
     dataset_folder = join(op.storage.datasets_folder, dataset_name)
     dataset_tfrecords_folder = join(dataset_folder, '{}_tfrecords'.format(dataset_name))
@@ -65,13 +56,8 @@ def main(options_filename):
     def part_metadata(part):
         return load_metadata(dataset_tfrecords_folder, part)
 
-    param_grid = MessageToDict(op.param_grid, preserving_proto_field_name=True)
-    if 'None' in param_grid['max_features']:
-        param_grid['max_features'].remove('None')
-        param_grid['max_features'].append(None)
-
-    rf = RandomForestClassifier()
-    gs = GridSearchCV(estimator=rf, param_grid=param_grid, refit=True, cv=3, n_jobs=-1, verbose=1)
+    with open(op.params_file, 'r') as f:
+        params = json.load(f)
 
     log.info("Loading training dataset")
     train_gesture, train_not_gesture = part_metadata('train')
@@ -81,19 +67,26 @@ def main(options_filename):
     X_train, y_train = train_dataset.make_one_shot_iterator().get_next()
     X_train, y_train = np.array(X_train), np.array(y_train)
 
-    log.info('Starting grid search')
-    gs.fit(X_train, y_train)
+    rf = RandomForestClassifier(**params, n_jobs=-1, random_state=1234)
 
-    log.info('Best params')
-    print(gs.best_params_)
+    log.info("Starting training with parameters:\n{}", json.dumps(params, indent=2))
+    rf.fit(X_train, y_train)
 
-    params_filename = join(op.storage.logs, "random_forest_best_params.json")
-    with open(params_filename, 'w') as f:
-        json.dump(gs.best_params_, f, indent=2, sort_keys=True)
+    log.info("Loading validation dataset")
+    validation_gesture, validation_not_gesture = part_metadata('validation')
+    batch_size = validation_gesture + validation_not_gesture
+    validation_dataset = make_dataset('validation').batch(batch_size=batch_size)
 
-    results_filename = join(op.storage.logs, "random_forest_results.json")
-    with open(results_filename, 'w') as f:
-        json.dump(gs.cv_results_, f, indent=2, cls=NumpyEncoder)
+    X_validation, y_validation = validation_dataset.make_one_shot_iterator().get_next()
+    X_validation, y_validation = np.array(X_validation), np.array(y_validation)
+
+    validation_score = rf.score(X_validation, y_validation)
+    log.info("Validation accuracy: {:.4f}", validation_score)
+
+    filename = join(op.storage.logs, "random_forest.sav")
+    log.info("Saving model on '{}'", filename)
+    joblib.dump(value=rf, filename=filename, compress=('zlib', 9))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -102,7 +95,7 @@ if __name__ == '__main__':
         required=True,
         type=str,
         help="""Path to options *.json file that matches with a 
-        GridSearchGestureLocalizationOptions protobuf message.""")
+        TrainRandomForestGestureLocalizationOptinons protobuf message.""")
     args = parser.parse_args()
 
     main(options_filename=args.options)

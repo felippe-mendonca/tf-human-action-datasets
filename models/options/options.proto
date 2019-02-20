@@ -107,3 +107,9 @@ message GridSearchGestureLocalizationOptions {
   Datasets dataset = 2;
   ParamGrid param_grid = 3;
 }
+
+message TrainRandomForestGestureLocalizationOptinons {
+  Storage storage = 1;
+  Datasets dataset = 2;
+  string params_file = 3;
+}
