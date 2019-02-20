@@ -143,9 +143,9 @@ def main(options_filename, model_file=None, weights=None, reset_lr=False):
         x=train_dataset,
         epochs=op.training.num_epochs,
         initial_epoch=initial_epoch,
-        steps_per_epoch=100,
+        steps_per_epoch=steps_per_epoch,
         validation_data=validation_dataset,
-        validation_steps=100,
+        validation_steps=validation_steps,
         callbacks=callbacks,
         verbose=1)
 

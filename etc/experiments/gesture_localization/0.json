@@ -1,0 +1,32 @@
+{
+  "optimizer": {
+    "learning_rate": 5e-2,
+    "learning_decay": 5e-3
+  },
+  "training": {
+    "batch_size": 32,
+    "num_epochs": 10000,
+    "shuffle_size": 3200,
+    "prefetch_size": 160,
+    "max_steps": 0
+  },
+  "storage": {
+    "datasets_folder": "/home/felippe/datasets/",
+    "logs": "./logs"
+  },
+  "dataset": "MONTALBANOV2",
+  "hidden_layers": [
+    {
+      "units": 512,
+      "activation": "RELU"
+    },
+    {
+      "units": 128,
+      "activation": "RELU"
+    }
+  ],
+  "telegram": {
+    "id": 796132021,
+    "token": "676046733:AAGG8kzDjTths_xOsbT5XMjqx3TimV8nq1M"
+  }
+}
