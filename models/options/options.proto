@@ -92,3 +92,18 @@ message GestureLocalizationOptions {
   Telegram telegram = 6;
   repeated DenseLayer hidden_layers = 7;
 }
+
+message GridSearchGestureLocalizationOptions {
+  message ParamGrid {
+    repeated uint32 n_estimators = 1;
+    repeated string criterion = 2;
+    repeated uint32 max_depth = 3;
+    repeated string max_features = 4;
+    repeated bool bootstrap = 5;
+    repeated string class_weight = 6;
+  }
+
+  Storage storage = 1;
+  Datasets dataset = 2;
+  ParamGrid param_grid = 3;
+}
