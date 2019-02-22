@@ -41,6 +41,12 @@ enum Datasets {
   MONTALBANOV2 = 1;
 }
 
+enum DatasetPart {
+  TRAIN = 0;
+  VALIDATION = 1;
+  TEST = 2;
+}
+
 message Shape {
   int32 width = 1;
   int32 height = 2;
@@ -112,4 +118,14 @@ message TrainRandomForestGestureLocalizationOptinons {
   Storage storage = 1;
   Datasets dataset = 2;
   string params_file = 3;
+}
+
+message EvalJaccardIndexGestureLocalization {
+  Storage storage = 1;
+  Datasets dataset = 2;
+  DatasetPart dataset_part = 3;
+  float ema_alpha = 4;
+  float min_confidence = 5;
+  uint32 max_n_undefined = 6;
+  uint32 min_gesture_width = 7;
 }

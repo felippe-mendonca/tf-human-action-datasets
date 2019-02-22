@@ -17,18 +17,18 @@
   "dataset": "MONTALBANOV2",
   "hidden_layers": [
     {
-      "units": 2048,
+      "units": 1460,
       "activation": "RELU",
       "dropout": {
-        "rate": 0.25,
+        "rate": 0.35,
         "type": "STANDARD"
       }
     },
     {
-      "units": 512,
+      "units": 366,
       "activation": "RELU",
       "dropout": {
-        "rate": 0.25,
+        "rate": 0.35,
         "type": "STANDARD"
       }
     }

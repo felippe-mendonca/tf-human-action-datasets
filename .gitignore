@@ -3,3 +3,8 @@
 venv/
 .vscode
 logs/
+*.npy
+*.sav
+*.h5
+*.hdf5
+*.csv
