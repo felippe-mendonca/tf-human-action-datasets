@@ -4,11 +4,11 @@ tf.enable_eager_execution()
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-
-import argparse
 from os.path import join
 from os import walk
 from time import time
+from operator import itemgetter
+import json
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.encoding import DataEncoder
@@ -42,6 +42,7 @@ def main(options_filename, model_filename, display):
     dataset_tfrecords_folder = join(dataset_folder, '{}_tfrecords'.format(dataset_name))
     part_folder = join(dataset_tfrecords_folder, dataset_part)
     _, _, dataset_files = next(walk(part_folder))
+    dataset_files.sort()
 
     encoder = DataEncoder(dataset_folder=dataset_folder)
     mean_data, std_data = encoder.get_dataset_stats()
@@ -57,7 +58,8 @@ def main(options_filename, model_filename, display):
     model = EnsembleModel(mlp_model_file=model_filename, ema_alpha=op.ema_alpha)
 
     all_jaccard_indexes = []
-    for file in sorted(dataset_files):
+    sample_jaccard_indexes = []
+    for file in dataset_files:
         dataset = tf.data.TFRecordDataset(join( part_folder, file)) \
             .map(decode)                                            \
             .map(make_one_hot_label)                                \
@@ -83,11 +85,11 @@ def main(options_filename, model_filename, display):
                     n_undefined += 1
                     is_not_gesture = n_undefined == op.max_n_undefined
                 if is_not_gesture:
-                    gesture_width = n - gestures_start[-1] + 1
+                    gesture_width = n - gestures_start[-1]
                     if gesture_width < op.min_gesture_width:
                         del gestures_start[-1]
                     else:
-                        gestures_end.append(n)
+                        gestures_end.append(n - 1)
                     on_gesture = False
                 if is_gesture:
                     n_undefined = 0
@@ -143,6 +145,7 @@ def main(options_filename, model_filename, display):
 
             all_jaccard_indexes.extend(jaccard_indexes)
 
+        sample_jaccard_indexes.append(np.array(jaccard_indexes).mean())
         log.info("{} | took={:.2f}ms, jaccard_index={:.4f}", file, took_ms,
                  np.array(jaccard_indexes).mean())
 
@@ -178,6 +181,26 @@ def main(options_filename, model_filename, display):
     log.info("Average Jaccard Index: {:.4f}±{:.4f}", ji_mean, ji_std)
     log.info("Saving Jaccard Indexes on '{}'", results_filename)
     np.save(results_filename, all_jaccard_indexes)
+
+    sample_jaccard_indexes = np.array(sample_jaccard_indexes)
+    nonzero_indices = np.nonzero(sample_jaccard_indexes)[0]
+    sorted_indices = nonzero_indices[np.argsort(sample_jaccard_indexes[nonzero_indices])]
+    middle_pos = int(sorted_indices.size / 2 - 1)
+    samples = 1
+    indices = np.hstack([
+        sorted_indices[0:samples],
+        sorted_indices[middle_pos:middle_pos + samples],
+        sorted_indices[-samples:],
+    ])
+
+    ranked_jaccard_indexes = sample_jaccard_indexes[indices]
+    ranked_samples = itemgetter(*(indices.tolist()))(dataset_files)
+    ranked_results = zip(ranked_jaccard_indexes, ranked_samples)
+    ranked_results = list(map(lambda x: {'acc': x[0], 'sample': x[1]}, ranked_results))
+
+    ranked_results_filename = options_filename.strip('.json') + '_ranked_results.json'
+    with open(ranked_results_filename, 'w') as f:
+        json.dump(ranked_results, f, indent=2)
 
 
 if __name__ == '__main__':
