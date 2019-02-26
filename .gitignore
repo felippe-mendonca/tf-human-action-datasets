@@ -8,3 +8,4 @@ logs/
 *.h5
 *.hdf5
 *.csv
+*ranked_results.json

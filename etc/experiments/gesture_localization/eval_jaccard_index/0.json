@@ -3,9 +3,9 @@
     "datasets_folder": "/home/felippe/datasets/"
   },
   "dataset": "MONTALBANOV2",
-  "dataset_part": "TRAIN",
-  "ema_alpha": 0.5,
-  "min_confidence": 0.6,
-  "max_n_undefined": 3,
-  "min_gesture_width": 15
+  "dataset_part": "TEST",
+  "ema_alpha": 1.0,
+  "min_confidence": 0.55,
+  "max_n_undefined": 0,
+  "min_gesture_width": 20
 }

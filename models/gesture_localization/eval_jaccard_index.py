@@ -3,6 +3,7 @@ tf.enable_eager_execution()
 
 import argparse
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from os.path import join
 from os import walk
@@ -12,7 +13,7 @@ import json
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.encoding import DataEncoder
-from models.gesture_localization.model import EnsembleModel, GestureSpottingState
+from models.gesture_localization.model import Model, GestureSpottingState
 from models.options.options_pb2 import EvalJaccardIndexGestureLocalization, Datasets, DatasetPart
 from models.options.utils import load_options
 from utils.logger import Logger
@@ -31,6 +32,45 @@ engine.training_utils.standardize_single_array = _standardize_single_array
 
 tf.logging.set_verbosity(tf.logging.INFO)
 log = Logger('EvalJaccardIndex')
+
+
+def eval_dataset(model, dataset, options):
+    n = 0
+    not_gesture_logits, gesture_logits, labels = [], [], []
+    gestures_start, gestures_end = [], []
+    model.reset()
+    for features, label in dataset.make_one_shot_iterator():
+        prediction = model.predict(features)
+        spotting_state = model.spot()
+
+        if spotting_state == GestureSpottingState.START:
+            gestures_start.append(n)
+        elif spotting_state == GestureSpottingState.END:
+            gestures_end.append(n - 1)
+        elif spotting_state == GestureSpottingState.EARLY_END:
+            del gestures_start[-1]
+
+        n += 1
+        labels.append(np.argmax(label))
+        gesture_logits.append(prediction[1])
+        not_gesture_logits.append(prediction[0])
+
+    labels = np.array(labels)
+    gesture_logits = np.array(gesture_logits)
+    not_gesture_logits = np.array(not_gesture_logits)
+
+    # missing end position of last gesture
+    if len(gestures_start) > len(gestures_end):
+        gesture_width = (n - 1) - gestures_start[-1] + 1
+        if gesture_width < options.min_gesture_width:
+            del gestures_start[-1]
+        else:
+            gestures_end.append(n - 1)
+
+    gestures_start = np.array(gestures_start)
+    gestures_end = np.array(gestures_end)
+
+    return not_gesture_logits, gesture_logits, labels, gestures_start, gestures_end
 
 
 def main(options_filename, model_filename, display):
@@ -55,7 +95,15 @@ def main(options_filename, model_filename, display):
     def make_one_hot_label(feature, label):
         return feature, tf.one_hot(label, 2)
 
-    model = EnsembleModel(
+    def make_dataset(filename):
+        dataset = tf.data.TFRecordDataset(filename) \
+            .map(decode)                            \
+            .map(make_one_hot_label)                \
+            .map(standardize_feature)               \
+            .batch(1)
+        return dataset
+
+    model = Model(
         mlp_model_file=model_filename,
         ema_alpha=op.ema_alpha,
         min_confidence=op.min_confidence,
@@ -65,53 +113,22 @@ def main(options_filename, model_filename, display):
     all_jaccard_indexes = []
     sample_jaccard_indexes = []
     for file in dataset_files:
-        dataset = tf.data.TFRecordDataset(join( part_folder, file)) \
-            .map(decode)                                            \
-            .map(make_one_hot_label)                                \
-            .map(standardize_feature)                               \
-            .batch(1)
 
-        n = 0
-        not_gesture_logits, gesture_logits, labels_array = [], [], []
-        gestures_start, gestures_end = [], []
+        dataset = make_dataset(join(part_folder, file))
+
         t0 = time()
-        model.reset()
-        for features, label in dataset.make_one_shot_iterator():
-            prediction = model.predict(features)
-            spotting_state = model.spot()
-
-            if spotting_state == GestureSpottingState.START:
-                gestures_start.append(n)
-            elif spotting_state == GestureSpottingState.END:
-                gestures_end.append(n - 1)
-            elif spotting_state == GestureSpottingState.EARLY_END:
-                del gestures_start[-1]
-
-            n += 1
-            labels_array.append(np.argmax(label))
-            if display:
-                gesture_logits.append(prediction[1])
-                not_gesture_logits.append(prediction[0])
-
+        result = eval_dataset(model, dataset, op)
+        not_gesture_logits, gesture_logits, labels = result[0:3]
+        gestures_start, gestures_end = result[3:]
+        n = gesture_logits.size
         took_ms = 1000 * ((time() - t0) / n) if n > 0.0 else 0.0
 
-        gesture_logits = np.array(gesture_logits)
-        not_gesture_logits = np.array(not_gesture_logits)
-
-        # missing end position of last gesture
-        if len(gestures_start) > len(gestures_end):
-            gesture_width = (n - 1) - gestures_start[-1] + 1
-            if gesture_width < op.min_gesture_width:
-                del gestures_start[-1]
-            else:
-                gestures_end.append(n - 1)
-
-        labels_padded = np.array([0] + labels_array + [0], dtype=np.int8)
+        labels_padded = np.hstack([0, labels, 0])
         dlabels = np.diff(labels_padded)
         labels_start = np.where(dlabels == 1)[0]
         labels_end = np.where(dlabels == -1)[0] - 1
 
-        labels_n = np.zeros(len(labels_array), dtype=np.uint8)
+        labels_n = np.zeros(len(labels), dtype=np.uint8)
         for start, end, val in zip(labels_start, labels_end, range(1, labels_start.size + 1)):
             labels_n[start:end + 1] = val
 
@@ -140,7 +157,7 @@ def main(options_filename, model_filename, display):
 
         sample_jaccard_indexes.append(np.array(jaccard_indexes).mean())
         log.info("{} | took={:.2f}ms, jaccard_index={:.4f}", file, took_ms,
-                 np.array(jaccard_indexes).mean())
+                 sample_jaccard_indexes[-1])
 
         if display:
             gestures = np.zeros(n)
@@ -149,7 +166,7 @@ def main(options_filename, model_filename, display):
 
             fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True)
 
-            ax[0].plot(labels_array, 'k--', linewidth=2.0)
+            ax[0].plot(labels, 'k--', linewidth=2.0)
             ax[0].plot(np.array(gestures) + 1, 'g', linewidth=2.0)
 
             ax[1].fill_between(
@@ -180,12 +197,11 @@ def main(options_filename, model_filename, display):
     nan_indices = np.flatnonzero(np.isnan(sample_jaccard_indexes))
     valid_indices = np.setxor1d(nonzero_indices, nan_indices)
     sorted_indices = valid_indices[np.argsort(sample_jaccard_indexes[valid_indices])]
-    middle_pos = int(sorted_indices.size / 2 - 1)
-    samples_to_save = 1
+    median_pos = int(sorted_indices.size / 2 - 1)
     indices = np.hstack([
-        sorted_indices[0:samples_to_save],
-        sorted_indices[middle_pos:middle_pos + samples_to_save],
-        sorted_indices[-samples_to_save:],
+        sorted_indices[0:1],
+        sorted_indices[median_pos:median_pos + 1],
+        sorted_indices[-1:],
     ])
 
     ranked_jaccard_indexes = sample_jaccard_indexes[indices]
@@ -196,6 +212,23 @@ def main(options_filename, model_filename, display):
     ranked_results_filename = options_filename.strip('.json') + '_ranked_results.json'
     with open(ranked_results_filename, 'w') as f:
         json.dump(ranked_results, f, indent=2)
+
+    indices_dict = dict(zip(["worst", "median", "better"], indices))
+    for rank, indice in indices_dict.items():
+        filename = join(part_folder, dataset_files[indice])
+        dataset = make_dataset(filename)
+        result = eval_dataset(model, dataset, op)
+        not_gesture_logits, gesture_logits, labels = result[0:3]
+        gestures_start, gestures_end = result[3:]
+        gestures = np.zeros(gesture_logits.size)
+        for start, end in zip(gestures_start, gestures_end):
+            gestures[start:end + 1] = 1
+
+        data = np.vstack([not_gesture_logits, gesture_logits, labels, gestures]).T
+        columns = ['not_gesture_logits', 'gesture_logits', 'labels', 'gestures']
+        df = pd.DataFrame(data=data, columns=columns)
+        filename = options_filename.strip('.json') + '_{}_ranked_result.csv'.format(rank)
+        df.to_csv(path_or_buf=filename, sep=',', index=False)
 
 
 if __name__ == '__main__':
