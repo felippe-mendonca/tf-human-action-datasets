@@ -12,7 +12,7 @@ import json
 
 from datasets.tfrecords.features import decode
 from models.gesture_localization.encoding import DataEncoder
-from models.gesture_localization.model import EnsembleModel
+from models.gesture_localization.model import EnsembleModel, GestureSpottingState
 from models.options.options_pb2 import EvalJaccardIndexGestureLocalization, Datasets, DatasetPart
 from models.options.utils import load_options
 from utils.logger import Logger
@@ -55,7 +55,12 @@ def main(options_filename, model_filename, display):
     def make_one_hot_label(feature, label):
         return feature, tf.one_hot(label, 2)
 
-    model = EnsembleModel(mlp_model_file=model_filename, ema_alpha=op.ema_alpha)
+    model = EnsembleModel(
+        mlp_model_file=model_filename,
+        ema_alpha=op.ema_alpha,
+        min_confidence=op.min_confidence,
+        min_gesture_width=op.min_gesture_width,
+        max_undefineds=op.max_n_undefined)
 
     all_jaccard_indexes = []
     sample_jaccard_indexes = []
@@ -68,31 +73,19 @@ def main(options_filename, model_filename, display):
 
         n = 0
         not_gesture_logits, gesture_logits, labels_array = [], [], []
-        gestures_start, gestures_end, on_gesture = [], [], False
-        n_undefined = 0
+        gestures_start, gestures_end = [], []
         t0 = time()
+        model.reset()
         for features, label in dataset.make_one_shot_iterator():
             prediction = model.predict(features)
-            is_not_gesture, is_gesture = tuple(prediction > op.min_confidence)
-            is_undefined = (not is_gesture) and (not is_not_gesture)
+            spotting_state = model.spot()
 
-            if not on_gesture and is_gesture:
+            if spotting_state == GestureSpottingState.START:
                 gestures_start.append(n)
-                on_gesture = True
-                n_undefined = 0
-            elif on_gesture:
-                if is_undefined:
-                    n_undefined += 1
-                    is_not_gesture = n_undefined == op.max_n_undefined
-                if is_not_gesture:
-                    gesture_width = n - gestures_start[-1]
-                    if gesture_width < op.min_gesture_width:
-                        del gestures_start[-1]
-                    else:
-                        gestures_end.append(n - 1)
-                    on_gesture = False
-                if is_gesture:
-                    n_undefined = 0
+            elif spotting_state == GestureSpottingState.END:
+                gestures_end.append(n - 1)
+            elif spotting_state == GestureSpottingState.EARLY_END:
+                del gestures_start[-1]
 
             n += 1
             labels_array.append(np.argmax(label))
@@ -183,14 +176,16 @@ def main(options_filename, model_filename, display):
     np.save(results_filename, all_jaccard_indexes)
 
     sample_jaccard_indexes = np.array(sample_jaccard_indexes)
-    nonzero_indices = np.nonzero(sample_jaccard_indexes)[0]
-    sorted_indices = nonzero_indices[np.argsort(sample_jaccard_indexes[nonzero_indices])]
+    nonzero_indices = np.flatnonzero(sample_jaccard_indexes)
+    nan_indices = np.flatnonzero(np.isnan(sample_jaccard_indexes))
+    valid_indices = np.setxor1d(nonzero_indices, nan_indices)
+    sorted_indices = valid_indices[np.argsort(sample_jaccard_indexes[valid_indices])]
     middle_pos = int(sorted_indices.size / 2 - 1)
-    samples = 1
+    samples_to_save = 1
     indices = np.hstack([
-        sorted_indices[0:samples],
-        sorted_indices[middle_pos:middle_pos + samples],
-        sorted_indices[-samples:],
+        sorted_indices[0:samples_to_save],
+        sorted_indices[middle_pos:middle_pos + samples_to_save],
+        sorted_indices[-samples_to_save:],
     ])
 
     ranked_jaccard_indexes = sample_jaccard_indexes[indices]
