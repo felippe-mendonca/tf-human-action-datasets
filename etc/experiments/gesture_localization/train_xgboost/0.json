@@ -1,0 +1,8 @@
+{
+  "storage": {
+    "datasets_folder": "/home/felippe/datasets/",
+    "logs": "./logs"
+  },
+  "dataset": "MONTALBANOV2",
+  "params_file": "./logs/xgboost_best_params.json" 
+}

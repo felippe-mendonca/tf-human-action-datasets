@@ -129,3 +129,28 @@ message EvalJaccardIndexGestureLocalization {
   uint32 max_n_undefined = 6;
   uint32 min_gesture_width = 7;
 }
+
+message XGBoostGestureLocalizationOptinons {
+  Storage storage = 1;
+  Datasets dataset = 2;
+}
+
+message TrainXGBoostGestureLocalizationOptinons {
+  Storage storage = 1;
+  Datasets dataset = 2;
+  string params_file = 3;
+}
+
+message XGBoostGridSearchGestureLocalizationOptions {
+  message ParamGrid {
+    repeated uint32 min_child_weight = 1;
+    repeated float gamma = 2;
+    repeated float subsample = 3;
+    repeated float colsample_bytree = 4;
+    repeated uint32 max_depth = 5;
+  }
+
+  Storage storage = 1;
+  Datasets dataset = 2;
+  ParamGrid param_grid = 3;
+}

@@ -21,13 +21,14 @@ class DataEncoder:
         for bp, joints in self._body_parts.copy().items():
             self._body_parts[bp] = list(map(lambda x: JOINTS_MAP[x], joints))
 
-        self._pipeline = [
-            self._make_features, self._scale_features_values, self._stack_features,
-            self._scale_features_size
-        ]
+        self._pipeline = []
+        # self._pipeline = [
+        #     self._make_features, self._scale_features_values, self._stack_features,
+        #     self._scale_features_size
+        # ]
 
-        if self._one_hot:
-            self._pipeline.append(self._make_one_hot_encoding)
+        # if self._one_hot:
+        #     self._pipeline.append(self._make_one_hot_encoding)
 
     def get_body_parts(self):
         return self._body_parts
@@ -39,6 +40,7 @@ class DataEncoder:
 
     def _make_features(self, positions, label):
         features = {}
+        positions = positions - tf.gather(positions, axis=1, indices=[JOINTS_MAP['baseSpine']])
         for part_name, part_joints in self._body_parts.items():
             n_k = len(part_joints) - 1  # number of part body joints
             # --- Compute within-part vectors
@@ -50,6 +52,7 @@ class DataEncoder:
             p = tf.gather(positions, axis=1, indices=other_joints)
             Vw = p - p0
             Vw_norm = tf.norm(Vw, axis=0, keepdims=False)
+            n0 = p0 / tf.norm(p0, axis=0, keepdims=True)
 
             # --- Compute between-part vectors
             all_joints = list(JOINTS_MAP.values())
@@ -58,12 +61,8 @@ class DataEncoder:
             Vb = p - p0
             Vb_norm = tf.norm(Vb, axis=0, keepdims=False)
 
-            # --- Compute Cosine Distance (CD) features
-            # For any vector 'v' of Vw and any vector 'u' of Vw U Vb,
-            # and u != v, compute their cosine distance.
-            cossine_array = []
-            sine_array = []
-            triangular_inequality_array = []
+            cos_theta = []
+            
             w_indices = range(n_k)
             for w_indice in w_indices:
                 other_indices = list(set(w_indices) - set([w_indice]))
@@ -76,12 +75,14 @@ class DataEncoder:
                 u_norm = tf.concat([others_v_norm, Vb_norm], axis=0)
 
                 cossine = tf.reduce_sum(u * v, axis=0) / (u_norm * v_norm)
-                sine = tf.sqrt(1 - tf.square(cossine))
-                triangular_inequality = tf.norm(u + v, axis=0) / (u_norm + v_norm)
 
-                cossine_array.append(cossine)
-                sine_array.append(sine)
-                triangular_inequality_array.append(triangular_inequality)
+
+                # sine = tf.sqrt(1 - tf.square(cossine))
+                # triangular_inequality = tf.norm(u + v, axis=0) / (u_norm + v_norm)
+
+                cos_theta.append(cossine)
+                # sine_array.append(sine)
+                # triangular_inequality_array.append(triangular_inequality)
 
             features[part_name] = {
                 'cossine': tf.concat(cossine, axis=0),

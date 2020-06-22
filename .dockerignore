@@ -1,0 +1,14 @@
+*.csv
+*.sav
+*.jpeg
+*.pickle.dat
+*.hdf5
+docs/
+etc/
+venv/
+examples/
+logs/
+__pycache__
+README.md
+!model-0131-0.9222.hdf5
+!random_forest_best.sav

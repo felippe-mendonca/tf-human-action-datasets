@@ -1,0 +1,13 @@
+{
+  "storage": {
+    "datasets_folder": "/home/felippe/datasets/",
+    "logs": "./logs"
+  },
+  "dataset": "MONTALBANOV2",
+  "param_grid": {
+    "min_child_weight": [ 1, 5, 10 ],
+    "gamma": [ 0.5, 1.5, 3 ],
+    "subsample": [ 0.6, 0.8, 1.0 ],
+    "max_depth": [ 3, 4, 5 ]
+  }
+}

@@ -5,6 +5,7 @@ venv/
 logs/
 *.npy
 *.sav
+*.dat
 *.h5
 *.hdf5
 *.csv

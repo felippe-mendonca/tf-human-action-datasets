@@ -1,0 +1,21 @@
+{
+  "global": {
+    "avg": 0.812951864012093,
+    "std": 0.2588411740541607
+  },
+  "avg_took_ms": 2.0848793892111357,
+  "ranked": [
+    {
+      "acc": 0.3611067339756885,
+      "sample": "Sample0861.tfrecords"
+    },
+    {
+      "acc": 0.8098789665430883,
+      "sample": "Sample0875.tfrecords"
+    },
+    {
+      "acc": 0.9670961370651773,
+      "sample": "Sample0827.tfrecords"
+    }
+  ]
+}

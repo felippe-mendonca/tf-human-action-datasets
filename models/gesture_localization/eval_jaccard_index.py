@@ -103,15 +103,18 @@ def main(options_filename, model_filename, display):
             .batch(1)
         return dataset
 
-    model = Model(
-        mlp_model_file=model_filename,
-        ema_alpha=op.ema_alpha,
-        min_confidence=op.min_confidence,
-        min_gesture_width=op.min_gesture_width,
-        max_undefineds=op.max_n_undefined)
+    mlp_model_file = model_filename if model_filename.endswith(".hdf5") else None
+    random_forest_model_file = model_filename if model_filename.endswith(".sav") else None
+    model = Model(mlp_model_file=mlp_model_file,
+                  random_forest_model_file=random_forest_model_file,
+                  ema_alpha=op.ema_alpha,
+                  min_confidence=op.min_confidence,
+                  min_gesture_width=op.min_gesture_width,
+                  max_undefineds=op.max_n_undefined)
 
     all_jaccard_indexes = []
     sample_jaccard_indexes = []
+    all_took_ms = []
     for file in dataset_files:
 
         dataset = make_dataset(join(part_folder, file))
@@ -122,6 +125,7 @@ def main(options_filename, model_filename, display):
         gestures_start, gestures_end = result[3:]
         n = gesture_logits.size
         took_ms = 1000 * ((time() - t0) / n) if n > 0.0 else 0.0
+        all_took_ms.append([n, took_ms])
 
         labels_padded = np.hstack([0, labels, 0])
         dlabels = np.diff(labels_padded)
@@ -169,19 +173,17 @@ def main(options_filename, model_filename, display):
             ax[0].plot(labels, 'k--', linewidth=2.0)
             ax[0].plot(np.array(gestures) + 1, 'g', linewidth=2.0)
 
-            ax[1].fill_between(
-                x=np.arange(gesture_logits.size),
-                y1=gesture_logits,
-                where=gesture_logits > op.min_confidence,
-                color='green',
-                alpha=0.25)
+            ax[1].fill_between(x=np.arange(gesture_logits.size),
+                               y1=gesture_logits,
+                               where=gesture_logits > op.min_confidence,
+                               color='green',
+                               alpha=0.25)
 
-            ax[1].fill_between(
-                x=np.arange(not_gesture_logits.size),
-                y1=not_gesture_logits,
-                where=not_gesture_logits > op.min_confidence,
-                color='red',
-                alpha=0.25)
+            ax[1].fill_between(x=np.arange(not_gesture_logits.size),
+                               y1=not_gesture_logits,
+                               where=not_gesture_logits > op.min_confidence,
+                               color='red',
+                               alpha=0.25)
 
             plt.show()
 
@@ -209,9 +211,21 @@ def main(options_filename, model_filename, display):
     ranked_results = zip(ranked_jaccard_indexes, ranked_samples)
     ranked_results = list(map(lambda x: {'acc': x[0], 'sample': x[1]}, ranked_results))
 
-    ranked_results_filename = options_filename.strip('.json') + '_ranked_results.json'
-    with open(ranked_results_filename, 'w') as f:
-        json.dump(ranked_results, f, indent=2)
+    all_took_ms = np.array(all_took_ms)
+    avg_took_ms = np.dot(all_took_ms[:, 0], all_took_ms[:, 1]) / all_took_ms[:, 0].sum()
+
+    results = {
+        "ranked": ranked_results,
+        "global": {
+            "avg": ji_mean,
+            "std": ji_std
+        },
+        "avg_took_ms": avg_took_ms
+    }
+
+    results_filename = options_filename.strip('.json') + '_results.json'
+    with open(results_filename, 'w') as f:
+        json.dump(results, f, indent=2)
 
     indices_dict = dict(zip(["worst", "median", "better"], indices))
     for rank, indice in indices_dict.items():
@@ -233,17 +247,18 @@ def main(options_filename, model_filename, display):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--options',
-        required=True,
-        type=str,
-        help="""Path to options *.json file that matches with a 
+    parser.add_argument('--options',
+                        required=True,
+                        type=str,
+                        help="""Path to options *.json file that matches with a 
         EvalJaccardIndexGestureLocalization protobuf message.""")
     parser.add_argument(
         '--model',
-        required=True,
+        required=False,
         type=str,
-        help="""Path to a *.h5 file corresponding to a MLP model.""")
+        help=
+        """Path to a *.hdf5 file corresponding for a MLP model or a *.sav for a RandomForest model"""
+    )
     parser.add_argument("--display", action='store_true')
     args = parser.parse_args()
 

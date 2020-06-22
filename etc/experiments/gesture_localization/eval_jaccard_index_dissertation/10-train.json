@@ -1,0 +1,11 @@
+{
+  "storage": {
+    "datasets_folder": "/home/felippe/datasets/"
+  },
+  "dataset": "MONTALBANOV2",
+  "dataset_part": "TRAIN",
+  "ema_alpha": 1.0,
+  "min_confidence": 0.5,
+  "max_n_undefined": 0,
+  "min_gesture_width": 15
+}
